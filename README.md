@@ -70,7 +70,7 @@
 
 ## 구조
 
-현재 런타임·배포·분석 branch·오류 처리 흐름을 한 번에 보려면 [프로젝트 플로우 문서](docs/PROJECT_FLOW.md)를 참고하세요.
+현재 런타임·배포·분석 branch·오류 처리 흐름은 [프로젝트 플로우 문서](docs/PROJECT_FLOW.md), 프롬프트 설계와 검증 이력은 [프롬프트 로그](docs/PROMPT_LOG.md)를 참고하세요.
 
 ```text
 사용자 브라우저

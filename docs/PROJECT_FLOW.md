@@ -204,6 +204,7 @@ flowchart LR
 - [README](../README.md)
 - [운영 가이드](./OPERATIONS.md)
 - [리팩토링 플랜](./REFACTORING_PLAN.md)
+- [프롬프트 로그](./PROMPT_LOG.md)
 - [병렬 분석 설계](./PARALLEL_ANALYSIS.md)
 - [UI/UX 구현 기록](./UI_UX_IMPLEMENTATION.md)
 - [운영 live test 기록](./LIVE_TEST_2026-09-11.md)
