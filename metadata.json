@@ -1,0 +1,10 @@
+{
+  "name": "PathTutor-edu",
+  "description": "A multimodal math tutor prototype that reconstructs student reasoning, analyzes errors, and presents structured solution paths.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "multimodal math solution analysis",
+    "structured reasoning paths",
+    "LaTeX and matrix visualization"
+  ]
+}

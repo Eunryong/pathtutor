@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "description": "PathTutor offline evaluation manifest. It contains no API keys or generated model responses.",
+  "cases": [
+    {
+      "id": "text-quadratic-basic",
+      "kind": "analyze",
+      "input": {
+        "text": "이차방정식 x^2 - 5x + 6 = 0을 풀고 풀이 과정을 분석해줘."
+      },
+      "expect": {
+        "requiredPaths": ["student", "standard"],
+        "optionalPaths": ["shortcut", "genius"]
+      }
+    },
+    {
+      "id": "image-solution-fixture",
+      "kind": "analyze",
+      "input": {
+        "text": "이미지에 있는 수학 문제와 학생 풀이를 읽고 분석해줘.",
+        "imageFile": "fixtures/math-solution.png"
+      },
+      "expect": {
+        "requiredPaths": ["student", "standard"],
+        "optionalPaths": ["shortcut", "genius"]
+      }
+    },
+    {
+      "id": "practice-quadratic-basic",
+      "kind": "practice",
+      "input": {
+        "originalLatex": "x^2 - 5x + 6 = 0",
+        "problemDescription": "정수근을 갖는 이차방정식의 인수분해 풀이"
+      },
+      "expect": {
+        "nonEmptyProblem": true
+      }
+    }
+  ]
+}

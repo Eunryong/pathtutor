@@ -1,0 +1,24 @@
+name = "pathtutor-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-08"
+workers_dev = true
+account_id = "7af34e13b5f1f3ba8756571e3fb68abc"
+
+# Keep outbound Gemini requests in a stable Asia-Pacific execution region.
+# This avoids unsupported Cloudflare egress locations for the Gemini API.
+[placement]
+region = "gcp:asia-northeast3"
+
+[vars]
+GEMINI_ANALYSIS_MODE = "parallel"
+GEMINI_MODEL = "gemini-3.8-flash"
+GEMINI_MAX_RETRIES = "1"
+GEMINI_TIMEOUT_MS = "50000"
+# Gemini 3.8 Flash Standard introductory pricing through 2026-12-31.
+# From 2027-01-01: input 1.50, output 7.50 USD/M tokens; update before then.
+GEMINI_INPUT_USD_PER_MILLION_TOKENS = "0.75"
+GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = "3.75"
+ALLOWED_ORIGIN = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://pathtutor-edu.pages.dev,https://*.pathtutor-edu.pages.dev,https://pathtutor.eunryong.win"
+# Best-effort isolate-local guard. Set to 0 only for controlled local use.
+RATE_LIMIT_MAX_REQUESTS = "20"
+RATE_LIMIT_WINDOW_MS = "60000"
