@@ -37,9 +37,9 @@ it('starts both requests before either completes, preserves model settings, and 
   for (const [url, options] of fetchMock.mock.calls) {
     expect(url).toContain('unchanged-model:generateContent');
     const config = JSON.parse(options.body).generationConfig;
-    expect(config).not.toHaveProperty('thinkingConfig');
+    expect(config).toMatchObject({ thinkingConfig: { includeThoughts: false } });
     expect(config).not.toHaveProperty('serviceTier');
-    expect(config.maxOutputTokens).toBe(8192);
+    expect(config.maxOutputTokens).toBe(16384);
   }
   pending[1](response(extensions));
   pending[0](response(core));
@@ -78,12 +78,18 @@ it('does not disguise a failed extensions request as mathematically unavailable 
   expect(await result.json()).toMatchObject({ ok: false, error: { code: 'RATE_LIMITED' } });
 });
 
-it('rejects different transcriptions instead of silently merging them', async () => {
+it('keeps the validated core result when optional branches transcribe differently', async () => {
   vi.stubGlobal('fetch', vi.fn((_url, options) => {
     const schema = JSON.parse(options.body).generationConfig.responseSchema;
     return Promise.resolve(response(schema.properties.student ? core : { ...extensions, problemLatex: 'x+1=3' }));
   }));
-  expect(await (await worker.fetch(request(), env)).json()).toMatchObject({ ok: false, error: { code: 'INVALID_MODEL_OUTPUT' } });
+  const payload = await (await worker.fetch(request(), env)).json() as any;
+  expect(payload.ok).toBe(true);
+  expect(payload.data.alternatives.map((path: any) => path.type)).toEqual(['standard']);
+  expect(payload.data.missingPaths).toEqual([
+    { type: 'shortcut', reason: expect.stringContaining('다르게 전사') },
+    { type: 'genius', reason: expect.stringContaining('다르게 전사') },
+  ]);
 });
 
 it('omits cost totals when a branch provides no usage metadata', async () => {
@@ -112,6 +118,18 @@ it('removes only deterministic display fields, preserves explanations and fills 
   const merged = mergeBranches(validateBranch('core', core), validateBranch('extensions', extensions));
   expect(JSON.stringify(merged)).not.toContain('validation only');
   expect(merged.studentPath.steps[0].explanation).toBe(path.steps[0].explanation);
+});
+
+it('uses a transparent correction fallback for the core branch without retrying', () => {
+  const invalidCore = {
+    ...core,
+    student: {
+      ...path,
+      steps: [{ ...path.steps[0], isError: true }],
+    },
+  };
+  const result = validateBranch('core', invalidCore, false, true);
+  expect(result.studentPath.steps[0].correction).toContain('모델이 이 오류 단계');
 });
 
 it('supplies the same image to both branches without an OCR pre-call', async () => {

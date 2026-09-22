@@ -13,6 +13,8 @@ region = "gcp:asia-northeast3"
 GEMINI_ANALYSIS_MODE = "parallel"
 GEMINI_MODEL = "gemini-3.8-flash"
 GEMINI_MAX_RETRIES = "1"
+# Leave enough candidate-token headroom for complex OCR/handwriting responses.
+GEMINI_MAX_OUTPUT_TOKENS = "16384"
 GEMINI_TIMEOUT_MS = "50000"
 # Gemini 3.8 Flash Standard introductory pricing through 2026-12-31.
 # From 2027-01-01: input 1.50, output 7.50 USD/M tokens; update before then.

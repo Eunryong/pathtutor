@@ -11,7 +11,7 @@
 - custom domain: `https://pathtutor.eunryong.win` (CNAME 연결 대기)
 - Pages preview: `https://9ed8b44d.pathtutor-edu.pages.dev`
 - Pages 프로젝트: `pathtutor-edu`
-- 최신 Worker 버전: `0d038b66-b415-41f7-9f39-34038f6be0d5`
+- 최신 Worker 버전: `226b2970-7a45-4ab4-9886-789c934a7c63`
 - Placement: `gcp:asia-northeast3` (Gemini API egress 지역 고정)
 
 기본 Pages 주소, preview 주소와 `https://pathtutor.eunryong.win`은 `worker/wrangler.toml`의 `ALLOWED_ORIGIN`에 반영되어 있습니다. custom domain DNS가 활성화되면 해당 주소에서 Worker API를 호출할 수 있습니다.
@@ -34,6 +34,7 @@ TTL: Auto
 | `GEMINI_API_KEY` | Wrangler Secret / 로컬 `worker/.env` | Gemini 호출 인증 |
 | `PATHTUTOR_ACCESS_TOKEN` | Wrangler Secret | 설정한 경우 API Bearer 인증 |
 | `GEMINI_MODEL` | Wrangler 변수 | 모델 ID |
+| `GEMINI_MAX_OUTPUT_TOKENS` | Wrangler 변수 | 분석 branch 출력 상한 |
 | `ALLOWED_ORIGIN` | Wrangler 변수 | 브라우저 Origin allowlist |
 | `RATE_LIMIT_MAX_REQUESTS` | Wrangler 변수 | isolate 단위 요청 상한 |
 | `RATE_LIMIT_WINDOW_MS` | Wrangler 변수 | 요청 상한 시간 창 |

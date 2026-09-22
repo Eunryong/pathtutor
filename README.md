@@ -357,7 +357,7 @@ Cloudflare Worker에서 외부 API를 호출하고 Wrangler Secret을 사용하�
 └── vite.config.ts
 ```
 
-2026-09-11 최종 운영 검증: `npm test` 58개, `npm run typecheck`, `npm run build`, Worker dry-run 통과. 운영 Worker에 Secret·Placement·병렬 분석 코드를 배포하고 텍스트·이미지·practice smoke test 3/3을 성공시켰습니다. 운영 추정 비용은 `$0.02895825`였습니다. Pages 프론트엔드도 최신 빌드로 재배포했습니다.
+2026-09-22 복잡한 손글씨 이미지 재현 보완: Gemini 사고 part·출력 상한·선택 시각화·병렬 전사 불일치·correction 누락 처리를 보완했습니다. `npm test` 62개, `npm run typecheck`, `npm run build`, Worker dry-run을 통과했고, 최종 Worker에서 `images (1).png` 분석 HTTP 200을 확인했습니다. 최종 재현은 19,486ms, 2회 호출, 14,752토큰, 추정 비용 `$0.047394`였습니다. 운영 Worker 버전은 `226b2970-7a45-4ab4-9886-789c934a7c63`입니다.
 
 운영 smoke test 3/3과 Worker dry-run, Pages 재배포를 완료했습니다. 고정 테스트셋 기반 OCR 품질 비교와 실제 모바일 기기·VoiceOver/TalkBack 점검은 제품 품질 확장 단계의 후속 작업입니다.
 

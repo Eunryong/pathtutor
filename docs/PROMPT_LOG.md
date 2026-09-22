@@ -149,7 +149,7 @@ contents[0].parts[1].inline_data = optional image
 | --- | ---: | ---: |
 | 모델 | `GEMINI_MODEL` 기본값 `gemini-3.8-flash` | 동일 |
 | temperature | `0.2` | `0.2` |
-| max output tokens | `8192` | `1024` |
+| max output tokens | `16384` | `1024` |
 | 응답 형식 | `application/json` | `application/json` |
 | Schema | `branchSchemas.core/extensions` | `practiceResponseSchema` |
 | 기본 timeout | `50,000ms` | `50,000ms` |
@@ -181,7 +181,9 @@ Previous response failed validation. Fix these issues in this branch only:
 - rate limit 응답
 - 제한된 재시도 횟수 초과
 
-병렬 분석에서 `core`와 `extensions`는 각각 독립적으로 재시도합니다. 두 branch 중 하나라도 최종 실패하면 부분 결과를 반환하지 않고 오류로 종료합니다. 두 결과가 모두 통과한 뒤 `problemLatex`를 공백 정규화하여 비교하고, 서로 다른 문제로 해석되면 병합을 거부합니다.
+`core`의 오류 단계에서 구체적인 `correction`만 누락된 경우에는 모델을 한 번 더 기다리지 않고 투명한 fallback 문구를 붙입니다. `standard` 누락, 잘못된 점수, 구조적 JSON 오류처럼 결과 신뢰성에 직접 영향을 주는 문제는 계속 재시도하거나 실패로 처리합니다.
+
+병렬 분석에서 `core`와 `extensions`는 각각 독립적으로 재시도합니다. 두 branch 중 하나 자체가 최종 실패하면 부분 결과를 반환하지 않고 오류로 종료합니다. 두 결과가 모두 통과한 뒤 `problemLatex`를 공백 정규화하여 비교하며, 표기가 다르면 선택 branch를 폐기하고 검증된 `core` 결과와 선택 경로 누락 사유를 반환합니다.
 
 ## 6. 프롬프트 검증 로그
 
@@ -222,6 +224,21 @@ Cloudflare Placement를 `gcp:asia-northeast3`로 고정한 뒤 운영 smoke test
 
 이 수치는 설정된 단가를 이용한 추정치이며 실제 청구액이나 무료 사용량과 동일하지 않습니다. 상세 원인은 [운영 live test 기록](./LIVE_TEST_2026-09-11.md)에 보존합니다.
 
+### 6.4 실제 문제 이미지 최종 재현
+
+사용자가 제공한 `images (1).png`를 최종 Worker에 전송했습니다.
+
+| 항목 | 결과 |
+| --- | ---: |
+| HTTP | **200** |
+| Worker 시간 | **19,486ms** |
+| Gemini 호출 | **2회** (`core` 1회 + `extensions` 1회) |
+| 전체 토큰 | **14,752** |
+| 추정 비용 | **$0.047394** |
+| 반환 경로 | `student` + `standard` |
+
+복잡한 이미지에서도 502 없이 결과를 반환했으며, 별도 경로가 검증되지 않은 경우 `missingPaths`에 사유를 남겼습니다.
+
 ## 7. 프롬프트 품질 판단 기준
 
 프롬프트가 잘 작동하는지 단순히 HTTP 200만으로 판단하지 않습니다.
@@ -232,7 +249,7 @@ Cloudflare Placement를 `gcp:asia-northeast3`로 고정한 뒤 운영 smoke test
 4. `shortcut`·`genius`가 억지로 생성되지 않고 생략 이유가 있는가
 5. 오류 단계에 구체적인 correction이 있는가
 6. JSON 파싱 및 런타임 Schema 검증이 통과하는가
-7. 병렬 branch가 같은 `problemLatex`를 가리키는가
+7. 병렬 branch가 같은 `problemLatex`를 가리키는가. 다르면 선택 경로를 폐기했는가
 8. 응답 시간·토큰·재시도율·추정 비용이 기록되는가
 
 고정 테스트셋을 추가로 운영할 때는 AI Studio 원본과 Worker 후속 버전에 같은 입력을 넣고 위 항목을 비교합니다. 현재 문서의 운영 수치는 smoke test이며, 학습 효과나 수학적 정확성 전체를 증명하는 평가 결과로 해석하지 않습니다.

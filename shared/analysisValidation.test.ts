@@ -65,6 +65,31 @@ describe('validateAnalysisResult', () => {
     expect(() => validateAnalysisResult(validResult({ studentPath }))).toThrow(AnalysisValidationError);
   });
 
+  it('keeps a final error step visible with a transparent correction fallback', () => {
+    const studentPath = {
+      ...path('student'),
+      steps: [{ ...path('student').steps[0], isError: true }],
+    };
+    const result = validateAnalysisResult(validResult({ studentPath }), { allowMissingCorrections: true });
+    expect(result.studentPath.steps[0].correction).toContain('구체적인 정정식');
+  });
+
+  it('drops an invalid optional matrix visualization without rejecting the solution', () => {
+    const studentPath = {
+      ...path('student'),
+      steps: [{
+        ...path('student').steps[0],
+        visualization: {
+          type: 'matrix_grid',
+          matrixA: [['1', '2']],
+          matrixB: [['3', '4']],
+        },
+      }],
+    };
+    const result = validateAnalysisResult(validResult({ studentPath }));
+    expect(result.studentPath.steps[0].visualization).toBeUndefined();
+  });
+
   it('rejects feedback scores outside the expected range', () => {
     expect(() => validateAnalysisResult(validResult({
       feedback: {

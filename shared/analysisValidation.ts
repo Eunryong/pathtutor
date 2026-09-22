@@ -14,6 +14,11 @@ const MAX_STEPS = 40;
 const MAX_MATRIX_ROWS = 20;
 const MAX_MATRIX_COLUMNS = 20;
 const MAX_STRING_LENGTH = 20_000;
+const MISSING_CORRECTION_FALLBACK = '모델이 이 오류 단계의 구체적인 정정식을 반환하지 않았습니다. 직전의 올바른 식에서 다시 계산해 확인하세요.';
+
+export interface AnalysisValidationOptions {
+  allowMissingCorrections?: boolean;
+}
 
 type RecordValue = Record<string, unknown>;
 
@@ -89,31 +94,38 @@ function parseMatrix(value: unknown, field: string, issues: string[]): string[][
 function parseVisualization(value: unknown, field: string, issues: string[]): MatrixVisualization | undefined {
   if (value === undefined || value === null) return undefined;
   if (!isRecord(value)) {
-    issues.push(`${field} must be an object`);
     return undefined;
   }
 
-  const type = enumValue(value.type, ['matrix_grid'] as const, `${field}.type`, issues);
-  const matrixA = parseMatrix(value.matrixA, `${field}.matrixA`, issues);
-  const matrixB = parseMatrix(value.matrixB, `${field}.matrixB`, issues);
+  // Matrix visualization is optional display metadata. Validate it in a local
+  // issue list so a malformed grid cannot discard an otherwise valid solution.
+  const visualizationIssues: string[] = [];
+  const type = enumValue(value.type, ['matrix_grid'] as const, `${field}.type`, visualizationIssues);
+  const matrixA = parseMatrix(value.matrixA, `${field}.matrixA`, visualizationIssues);
+  const matrixB = parseMatrix(value.matrixB, `${field}.matrixB`, visualizationIssues);
   const resultMatrix = value.resultMatrix === undefined
     ? undefined
-    : parseMatrix(value.resultMatrix, `${field}.resultMatrix`, issues);
+    : parseMatrix(value.resultMatrix, `${field}.resultMatrix`, visualizationIssues);
 
   if (matrixA[0] && matrixB.length && matrixA[0].length !== matrixB.length) {
-    issues.push(`${field} matrix dimensions are not valid for multiplication`);
+    visualizationIssues.push(`${field} matrix dimensions are not valid for multiplication`);
   }
   if (resultMatrix && matrixA.length && matrixB[0]) {
     if (resultMatrix.length !== matrixA.length || resultMatrix[0]?.length !== matrixB[0].length) {
-      issues.push(`${field}.resultMatrix dimensions do not match the multiplication result`);
+      visualizationIssues.push(`${field}.resultMatrix dimensions do not match the multiplication result`);
     }
   }
 
-  if (!type || !matrixA.length || !matrixB.length) return undefined;
+  if (visualizationIssues.length > 0 || !type || !matrixA.length || !matrixB.length) return undefined;
   return { type, matrixA, matrixB, ...(resultMatrix ? { resultMatrix } : {}) };
 }
 
-function parseStep(value: unknown, field: string, issues: string[]): Step {
+function parseStep(
+  value: unknown,
+  field: string,
+  issues: string[],
+  options: AnalysisValidationOptions,
+): Step {
   if (!isRecord(value)) {
     issues.push(`${field} must be an object`);
     return { stepNumber: 0, latex: '', explanation: '' };
@@ -128,22 +140,34 @@ function parseStep(value: unknown, field: string, issues: string[]): Step {
   const isError = value.isError === undefined ? false : value.isError;
   if (typeof isError !== 'boolean') issues.push(`${field}.isError must be boolean`);
   const correction = optionalString(value.correction, `${field}.correction`, issues);
-  if (isError === true && !correction) issues.push(`${field}.correction is required for an error step`);
+  if (isError === true && !correction && !options.allowMissingCorrections) {
+    issues.push(`${field}.correction is required for an error step`);
+  }
   const strategy = optionalString(value.strategy, `${field}.strategy`, issues);
   const visualization = parseVisualization(value.visualization, `${field}.visualization`, issues);
+  const safeCorrection = correction || (
+    isError === true && options.allowMissingCorrections
+      ? MISSING_CORRECTION_FALLBACK
+      : undefined
+  );
 
   return {
     stepNumber: typeof stepNumber === 'number' ? stepNumber : 0,
     latex,
     explanation,
     ...(isError === true ? { isError: true } : {}),
-    ...(correction ? { correction } : {}),
+    ...(safeCorrection ? { correction: safeCorrection } : {}),
     ...(strategy ? { strategy } : {}),
     ...(visualization ? { visualization } : {}),
   };
 }
 
-function parsePath(value: unknown, field: string, issues: string[]): Path {
+function parsePath(
+  value: unknown,
+  field: string,
+  issues: string[],
+  options: AnalysisValidationOptions,
+): Path {
   if (!isRecord(value)) {
     issues.push(`${field} must be an object`);
     return { name: '', description: '', type: 'standard', steps: [] };
@@ -156,7 +180,12 @@ function parsePath(value: unknown, field: string, issues: string[]): Path {
     issues.push(`${field}.steps must contain between 1 and ${MAX_STEPS} steps`);
   }
   const steps = Array.isArray(value.steps)
-    ? value.steps.slice(0, MAX_STEPS).map((step, index) => parseStep(step, `${field}.steps[${index}]`, issues))
+    ? value.steps.slice(0, MAX_STEPS).map((step, index) => parseStep(
+      step,
+      `${field}.steps[${index}]`,
+      issues,
+      options,
+    ))
     : [];
   const color = optionalString(value.color, `${field}.color`, issues);
   return { name, description, type, steps, ...(color ? { color } : {}) };
@@ -190,20 +219,28 @@ function score(value: unknown, field: string, issues: string[]): number {
   return value;
 }
 
-export function validateAnalysisResult(value: unknown): AnalysisResult {
+export function validateAnalysisResult(
+  value: unknown,
+  options: AnalysisValidationOptions = {},
+): AnalysisResult {
   const issues: string[] = [];
   if (!isRecord(value)) throw new AnalysisValidationError(['response must be an object']);
 
   const problemLatex = nonEmptyString(value.problemLatex, 'problemLatex', issues);
   const problemDescription = nonEmptyString(value.problemDescription, 'problemDescription', issues);
-  const studentPath = parsePath(value.studentPath, 'studentPath', issues);
+  const studentPath = parsePath(value.studentPath, 'studentPath', issues, options);
   if (studentPath.type !== 'student') issues.push('studentPath.type must be student');
 
   if (Array.isArray(value.alternatives) && value.alternatives.length > MAX_PATHS - 1) {
     issues.push(`alternatives must contain at most ${MAX_PATHS - 1} paths`);
   }
   const alternatives = Array.isArray(value.alternatives)
-    ? value.alternatives.slice(0, MAX_PATHS - 1).map((path, index) => parsePath(path, `alternatives[${index}]`, issues))
+    ? value.alternatives.slice(0, MAX_PATHS - 1).map((path, index) => parsePath(
+      path,
+      `alternatives[${index}]`,
+      issues,
+      options,
+    ))
     : [];
   if (!Array.isArray(value.alternatives)) issues.push('alternatives must be an array');
 

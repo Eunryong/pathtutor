@@ -25,6 +25,7 @@ interface WorkerEnv {
   GEMINI_API_KEY?: string;
   GEMINI_MODEL?: string;
   GEMINI_MAX_RETRIES?: string;
+  GEMINI_MAX_OUTPUT_TOKENS?: string;
   GEMINI_TIMEOUT_MS?: string;
   GEMINI_INPUT_USD_PER_MILLION_TOKENS?: string;
   GEMINI_OUTPUT_USD_PER_MILLION_TOKENS?: string;
@@ -49,8 +50,9 @@ interface PracticeInput {
 
 interface GeminiResponse {
   candidates?: Array<{
+    finishReason?: string;
     content?: {
-      parts?: Array<{ text?: string }>;
+      parts?: Array<{ text?: string; thought?: boolean }>;
     };
   }>;
   usageMetadata?: {
@@ -71,6 +73,7 @@ interface StructuredResult<T> {
 const DEFAULT_MODEL = 'gemini-3.8-flash';
 const DEFAULT_TIMEOUT_MS = 50_000;
 const DEFAULT_MAX_RETRIES = 1;
+const DEFAULT_ANALYSIS_MAX_OUTPUT_TOKENS = 16_384;
 const MAX_REQUEST_BYTES = 9 * 1024 * 1024;
 const MAX_IMAGE_BASE64_LENGTH = 8_500_000;
 const MAX_TEXT_LENGTH = 12_000;
@@ -121,11 +124,13 @@ class WorkerError extends Error {
 
 class ModelOutputError extends Error {
   readonly issues: string[];
+  readonly finishReason?: string;
 
-  constructor(issues: string[]) {
+  constructor(issues: string[], finishReason?: string) {
     super('Gemini returned an invalid structured response');
     this.name = 'ModelOutputError';
     this.issues = issues;
+    this.finishReason = finishReason;
   }
 }
 
@@ -145,6 +150,15 @@ function boundedInteger(value: string | undefined, fallback: number, min: number
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, Math.floor(parsed)));
+}
+
+function analysisMaxOutputTokens(env: WorkerEnv): number {
+  return boundedInteger(
+    env.GEMINI_MAX_OUTPUT_TOKENS,
+    DEFAULT_ANALYSIS_MAX_OUTPUT_TOKENS,
+    8_192,
+    32_768,
+  );
 }
 
 function modelName(env: WorkerEnv): string {
@@ -400,28 +414,84 @@ function safeUpstreamReason(body: string): string {
     .slice(0, 240) || 'empty upstream response';
 }
 
-function extractText(response: unknown): { text: string; usage?: UsageMetadata } {
+function findBalancedJsonObject(text: string): string | undefined {
+  for (let start = 0; start < text.length; start += 1) {
+    if (text[start] !== '{') continue;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < text.length; index += 1) {
+      const character = text[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+      if (character === '"') inString = true;
+      else if (character === '{') depth += 1;
+      else if (character === '}') {
+        depth -= 1;
+        if (depth === 0) return text.slice(start, index + 1);
+        if (depth < 0) break;
+      }
+    }
+  }
+  return undefined;
+}
+
+function parseModelJson(text: string, label: string, finishReason?: string): unknown {
+  const normalized = text.trim().replace(/^\uFEFF/, '');
+  const candidates = [normalized];
+  const fenced = normalized.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1]?.trim();
+  if (fenced) candidates.push(fenced);
+  const balanced = findBalancedJsonObject(normalized);
+  if (balanced) candidates.push(balanced);
+
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    if (!candidate || seen.has(candidate)) continue;
+    seen.add(candidate);
+    try {
+      return JSON.parse(candidate) as unknown;
+    } catch {
+      // Try the next safe envelope candidate before treating the response as invalid.
+    }
+  }
+  throw new ModelOutputError([`${label} was not valid JSON`], finishReason);
+}
+
+function extractText(response: unknown): { text: string; usage?: UsageMetadata; finishReason?: string } {
   if (!isRecord(response)) throw new ModelOutputError(['response must be an object']);
   const candidates = response.candidates;
   if (!Array.isArray(candidates) || !candidates[0] || !isRecord(candidates[0])) {
     throw new ModelOutputError(['response.candidates[0] is missing']);
   }
+  const candidate = candidates[0];
   const content = candidates[0].content;
   if (!isRecord(content) || !Array.isArray(content.parts)) {
     throw new ModelOutputError(['response.candidates[0].content.parts is missing']);
   }
   const text = content.parts
     .filter(isRecord)
+    // Gemini thinking summaries can be returned as text parts marked thought=true.
+    // They are not the structured answer and must not be concatenated into JSON.
+    .filter((part) => part.thought !== true)
     .map((part) => part.text)
     .filter((part): part is string => typeof part === 'string')
     .join('')
     .trim();
-  if (!text) throw new ModelOutputError(['model response did not contain text']);
+  const finishReason = typeof candidate.finishReason === 'string' ? candidate.finishReason : undefined;
+  if (!text) throw new ModelOutputError(['model response did not contain text'], finishReason);
 
   const usage = isRecord(response.usageMetadata)
     ? usageMetadata(response as GeminiResponse)
     : undefined;
-  return { text, ...(usage ? { usage } : {}) };
+  return {
+    text,
+    ...(usage ? { usage } : {}),
+    ...(finishReason ? { finishReason } : {}),
+  };
 }
 
 async function generateContent(
@@ -453,6 +523,9 @@ async function generateContent(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens,
+          // Preserve the model's normal thinking level, but keep thought summaries
+          // out of the text part that is parsed as the structured JSON answer.
+          thinkingConfig: { includeThoughts: false },
           responseMimeType: 'application/json',
           responseSchema: toGeminiResponseSchema(schema),
         },
@@ -567,6 +640,7 @@ function errorDiagnostics(error: unknown): Record<string, unknown> {
     return {
       type: 'model_output',
       issues: error.issues.slice(0, 12),
+      ...(error.finishReason ? { finishReason: error.finishReason } : {}),
     };
   }
   if (error instanceof WorkerError) {
@@ -599,16 +673,11 @@ async function runAnalysis(
         ANALYSIS_SYSTEM_INSTRUCTION,
         responseParts(prompt, input.image),
         analysisResponseSchema,
-        8_192,
+        analysisMaxOutputTokens(env),
       );
       const extracted = extractText(response);
       lastUsage = extracted.usage;
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(extracted.text);
-      } catch {
-        throw new ModelOutputError(['model text was not valid JSON']);
-      }
+      const parsed = parseModelJson(extracted.text, 'model text', extracted.finishReason);
       return {
         data: validateAnalysisResult(parsed),
         attempts: attempt,
@@ -649,7 +718,7 @@ async function runParallelAnalysis(env: WorkerEnv, input: AnalyzeInput, requestI
           const response = await generateContent(
             env, 'You are PathTutor, a careful mathematical tutor. Follow the branch task and JSON schema.',
             responseParts(branchPrompt(branch, input.text, Boolean(input.image), repair), input.image),
-            branchSchemas[branch], 8_192,
+            branchSchemas[branch], analysisMaxOutputTokens(env),
           );
           // Count every reported attempt, including responses rejected by validation.
           const reported = usageMetadata(response);
@@ -661,10 +730,13 @@ async function runParallelAnalysis(env: WorkerEnv, input: AnalyzeInput, requestI
             }
           } else usageComplete = false;
           const extracted = extractText(response);
-          let parsed: unknown;
-          try { parsed = JSON.parse(extracted.text); }
-          catch { throw new ModelOutputError(['branch response was not valid JSON']); }
-          return validateBranch(branch, parsed, attempt > maxRetries);
+          const parsed = parseModelJson(extracted.text, 'branch response', extracted.finishReason);
+          return validateBranch(
+            branch,
+            parsed,
+            attempt > maxRetries,
+            branch === 'core',
+          );
         } catch (error) {
           lastError = error;
           if (error instanceof WorkerError) usageComplete = false;
@@ -733,12 +805,7 @@ async function runPractice(
       );
       const extracted = extractText(response);
       lastUsage = extracted.usage;
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(extracted.text);
-      } catch {
-        throw new ModelOutputError(['practice response was not valid JSON']);
-      }
+      const parsed = parseModelJson(extracted.text, 'practice response', extracted.finishReason);
       if (!isRecord(parsed) || typeof parsed.problem !== 'string' || !parsed.problem.trim()) {
         throw new ModelOutputError(['practice.problem must be a non-empty string']);
       }

@@ -55,6 +55,18 @@ function geminiResponse(payload: unknown): Response {
   }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
 
+function geminiResponseWithParts(parts: Array<{ text: string; thought?: boolean }>): Response {
+  return new Response(JSON.stringify({
+    candidates: [{ content: { parts } }],
+    usageMetadata: {
+      promptTokenCount: 10,
+      candidatesTokenCount: 20,
+      thoughtsTokenCount: 5,
+      totalTokenCount: 35,
+    },
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+}
+
 function analyzeRequest(extraHeaders: Record<string, string> = {}) {
   return new Request('http://localhost/api/analyze', {
     method: 'POST',
@@ -149,7 +161,25 @@ describe('PathTutor Worker', () => {
     expect(upstreamBody.generationConfig).toMatchObject({
       responseMimeType: 'application/json',
       responseSchema: { type: 'OBJECT' },
+      thinkingConfig: { includeThoughts: false },
     });
+  });
+
+  it('ignores Gemini thought text and extracts JSON from a fenced answer', async () => {
+    const payload = analysisPayload();
+    const fetchMock = vi.fn().mockResolvedValue(geminiResponseWithParts([
+      { text: 'The model is checking the image and domain restrictions.', thought: true },
+      { text: '```json\n' + JSON.stringify(payload) + '\n```' },
+    ]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await worker.fetch(analyzeRequest(), env);
+    const body = await response.json() as { ok: boolean; data?: typeof payload };
+
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.data?.studentPath.type).toBe('student');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('sends an image as inline_data to the Worker upstream call', async () => {

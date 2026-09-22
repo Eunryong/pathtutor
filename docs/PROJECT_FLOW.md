@@ -85,7 +85,7 @@ flowchart TD
 5. 각 branch는 Gemini에 프롬프트, 텍스트, 선택적 이미지를 전달하고 `responseMimeType: application/json` 및 branch별 JSON Schema를 사용합니다.
 6. 구조화 JSON이 애플리케이션 검증을 통과하지 못하면 제한된 재시도 동안 오류 힌트를 포함해 해당 branch만 다시 요청합니다.
 7. `standard`는 필수 경로입니다. `shortcut`과 `genius`를 만들기 어려운 경우에는 `missingPaths`에 수학적 사유를 남기고 결과를 완성합니다.
-8. 두 branch의 `problemLatex`가 다르면 서로 다른 문제를 분석한 것으로 보고 병합하지 않습니다.
+8. 두 branch의 `problemLatex`가 다르면 선택 branch를 병합하지 않고, 검증된 `core`의 학생·표준 풀이와 선택 경로 누락 사유만 반환합니다.
 9. 최종 응답에는 풀이 결과와 함께 `requestId`, 모델, 시도 횟수, branch별 소요 시간, token usage, 추정 비용이 포함될 수 있습니다.
 
 ## 3. 프론트엔드 상태 흐름
