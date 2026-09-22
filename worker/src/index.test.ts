@@ -245,6 +245,10 @@ describe('PathTutor Worker', () => {
     expect(response.status).toBe(200);
     expect(body).toMatchObject({ ok: true, problem: '2x + 3 = 7' });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    const upstreamBody = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body)) as {
+      generationConfig: { maxOutputTokens: number };
+    };
+    expect(upstreamBody.generationConfig.maxOutputTokens).toBe(4096);
   });
 
   it('rejects an empty request before calling Gemini', async () => {

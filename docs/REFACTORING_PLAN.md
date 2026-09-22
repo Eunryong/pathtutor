@@ -16,7 +16,7 @@
 - Aside 브라우저의 고정 응답으로 오류 → timeout → 성공 확인. 운영 health 200·preflight 204 확인. Gemini 실호출 없음.
 - 입력·결과 axe-core 자동 검사, 오류 설명 연결·그룹 의미·터치 영역 보완. 실제 기기와 스크린리더 수동 확인은 남음.
 - SUIT Variable / Pretendard Variable 자체 호스팅, 라이선스 배포물 포함.
-- 자동 테스트 62개. 운영 smoke test와 UI/mock 검증을 구분.
+- 자동 테스트 63개. 운영 smoke test와 UI/mock 검증을 구분.
 - 자세한 확인 범위와 수동 점검 목록: [UI 구현 기록](UI_UX_IMPLEMENTATION.md).
 
 다음 표의 운영 smoke test는 2026-09-11 최종 배포 후 실행한 결과입니다. 단일 smoke test를 고정 테스트셋 전체 평가 완료로 해석하지 않습니다. 분산 quota·비용 상한은 미구현이며 단순 IP 제한을 비용 보장으로 간주하지 않습니다.
@@ -339,7 +339,7 @@ Worker와 프론트엔드가 같은 응답 계약을 사용해야 하므로, `An
 
 ## 6. 테스트 계획
 
-현재 `npm test` 62개, `typecheck`, 프론트엔드 `build`, Wrangler Worker `dry-run`은 통과했습니다. 운영 `pathtutor-api`에서 fixture 이미지를 포함한 텍스트·이미지·practice smoke test가 3/3 성공했고, 복잡한 손글씨 이미지도 최종 Worker에서 HTTP 200으로 확인했습니다. CORS preflight는 mock·운영 요청으로 검증했습니다. 프론트엔드는 `pathtutor-edu.pages.dev`에 최신 빌드로 배포했습니다. 고정 테스트셋 응답 기록과 모바일 접근성 점검은 별도 후속 작업입니다.
+현재 `npm test` 63개, `typecheck`, 프론트엔드 `build`, Wrangler Worker `dry-run`은 통과했습니다. 운영 `pathtutor-api`에서 fixture 이미지를 포함한 텍스트·이미지·practice smoke test가 3/3 성공했고, 복잡한 손글씨 이미지도 최종 Worker에서 HTTP 200으로 확인했습니다. CORS preflight는 mock·운영 요청으로 검증했습니다. 프론트엔드는 `pathtutor-edu.pages.dev`에 최신 빌드로 배포했습니다. 고정 테스트셋 응답 기록과 모바일 접근성 점검은 별도 후속 작업입니다.
 
 ### 단위 테스트
 

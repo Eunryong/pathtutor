@@ -2,7 +2,7 @@
 
 이미지와 텍스트로 입력된 수학 풀이를 분석해 학습자의 풀이 과정을 재구성하고, 오류 피드백과 여러 풀이 경로를 보여주는 멀티모달 AI 튜터 프로토타입입니다.
 
-> 이 저장소는 2025년 12월부터 2026년 1월까지 Google AI Studio에서 설계·검증한 프로토타입을 바탕으로, Cloudflare Workers와 Gemini Flash API 기반 후속 구조를 구현하는 프로젝트입니다. 현재 Worker API와 프론트엔드를 각각 Cloudflare에 배포했고, 운영 Worker에서 텍스트 분석·이미지 OCR·유사 문제 생성 smoke test를 3/3 성공시켰습니다. 기본 Pages 주소는 운영 중이며 `pathtutor.eunryong.win` custom domain은 CNAME 연결 대기 상태입니다.
+> 이 저장소는 2025년 12월부터 2026년 1월까지 Google AI Studio에서 설계·검증한 프로토타입을 바탕으로, Cloudflare Workers와 Gemini Flash API 기반 후속 구조를 구현하는 프로젝트입니다. 현재 Worker API와 프론트엔드를 각각 Cloudflare에 배포했고, 운영 Worker에서 텍스트 분석·이미지 OCR·유사 문제 생성 smoke test를 3/3 성공시켰습니다. 기본 Pages 주소와 `pathtutor.eunryong.win` custom domain 모두 운영 중입니다.
 
 ## 프로젝트 정보
 
@@ -357,7 +357,7 @@ Cloudflare Worker에서 외부 API를 호출하고 Wrangler Secret을 사용하�
 └── vite.config.ts
 ```
 
-2026-09-22 복잡한 손글씨 이미지 재현 보완: Gemini 사고 part·출력 상한·선택 시각화·병렬 전사 불일치·correction 누락 처리를 보완했습니다. `npm test` 62개, `npm run typecheck`, `npm run build`, Worker dry-run을 통과했고, 최종 Worker에서 `images (1).png` 분석 HTTP 200을 확인했습니다. 최종 재현은 19,486ms, 2회 호출, 14,752토큰, 추정 비용 `$0.047394`였습니다. 운영 Worker 버전은 `226b2970-7a45-4ab4-9886-789c934a7c63`입니다.
+2026-09-22 복잡한 손글씨 이미지 재현 보완: Gemini 사고 part·출력 상한·선택 시각화·병렬 전사 불일치·correction 누락 처리를 보완했습니다. 이후 한국어 혼합 LaTeX 렌더링과 유사 문제 생성 출력 상한도 보완했습니다. `npm test` 63개, `npm run typecheck`, `npm run build`, Worker dry-run을 통과했고, 최종 Worker에서 `images (1).png` 분석 HTTP 200을 확인했습니다. 최종 분석 재현은 19,486ms, 2회 호출, 14,752토큰, 추정 비용 `$0.047394`였습니다.
 
 운영 smoke test 3/3과 Worker dry-run, Pages 재배포를 완료했습니다. 고정 테스트셋 기반 OCR 품질 비교와 실제 모바일 기기·VoiceOver/TalkBack 점검은 제품 품질 확장 단계의 후속 작업입니다.
 

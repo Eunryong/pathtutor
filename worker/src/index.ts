@@ -26,6 +26,7 @@ interface WorkerEnv {
   GEMINI_MODEL?: string;
   GEMINI_MAX_RETRIES?: string;
   GEMINI_MAX_OUTPUT_TOKENS?: string;
+  GEMINI_PRACTICE_MAX_OUTPUT_TOKENS?: string;
   GEMINI_TIMEOUT_MS?: string;
   GEMINI_INPUT_USD_PER_MILLION_TOKENS?: string;
   GEMINI_OUTPUT_USD_PER_MILLION_TOKENS?: string;
@@ -74,6 +75,7 @@ const DEFAULT_MODEL = 'gemini-3.8-flash';
 const DEFAULT_TIMEOUT_MS = 50_000;
 const DEFAULT_MAX_RETRIES = 1;
 const DEFAULT_ANALYSIS_MAX_OUTPUT_TOKENS = 16_384;
+const DEFAULT_PRACTICE_MAX_OUTPUT_TOKENS = 4_096;
 const MAX_REQUEST_BYTES = 9 * 1024 * 1024;
 const MAX_IMAGE_BASE64_LENGTH = 8_500_000;
 const MAX_TEXT_LENGTH = 12_000;
@@ -158,6 +160,15 @@ function analysisMaxOutputTokens(env: WorkerEnv): number {
     DEFAULT_ANALYSIS_MAX_OUTPUT_TOKENS,
     8_192,
     32_768,
+  );
+}
+
+function practiceMaxOutputTokens(env: WorkerEnv): number {
+  return boundedInteger(
+    env.GEMINI_PRACTICE_MAX_OUTPUT_TOKENS,
+    DEFAULT_PRACTICE_MAX_OUTPUT_TOKENS,
+    1_024,
+    16_384,
   );
 }
 
@@ -801,7 +812,7 @@ async function runPractice(
         PRACTICE_SYSTEM_INSTRUCTION,
         [{ text: buildPracticePrompt(input.originalLatex, input.problemDescription) }],
         practiceResponseSchema,
-        1_024,
+        practiceMaxOutputTokens(env),
       );
       const extracted = extractText(response);
       lastUsage = extracted.usage;
@@ -912,6 +923,7 @@ async function handlePractice(request: Request, env: WorkerEnv, requestId: strin
     logRequest('practice.failed', requestId, {
       code: publicError.code,
       durationMs: Date.now() - startedAt,
+      diagnostics: errorDiagnostics(error),
       upstreamStatus: publicError.upstreamStatus,
     });
     return errorResponse(request, env, requestId, publicError);

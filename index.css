@@ -101,6 +101,7 @@ textarea::placeholder { color: #67778e; }
 .results-page .eyebrow { margin-bottom: 8px; }
 .problem-paper { padding: 24px 30px; }
 .equation { overflow-x: auto; max-width: 100%; padding: 14px 0; font-size: 21px; }
+.latex-text { white-space: pre-wrap; }
 .equation .katex-display { text-align: left; margin: .4em 0; }
 .problem-paper > p { color: var(--muted); font-size: 14px; }
 details { font-size: 14px; }
