@@ -9,9 +9,15 @@ interface LatexRendererProps {
 
 type RenderSegment =
   | { kind: 'text'; value: string }
-  | { kind: 'math'; value: string; displayMode: boolean };
+  | { kind: 'math'; value: string; displayMode: boolean }
+  | { kind: 'aligned'; lines: RenderSegment[][] };
 
 const HANGUL_PATTERN = /[\u1100-\u11ff\u3130-\u318f\ua960-\ua97f\uac00-\ud7ff]+/u;
+
+function normalizeCommonLatexTypos(source: string): string {
+  // Models occasionally omit braces for a one-character fraction, e.g. \\fracqp.
+  return source.replace(/\\frac\s*([A-Za-z0-9])\s*([A-Za-z0-9])/g, '\\frac{$1}{$2}');
+}
 
 function findBalancedGroup(source: string, openIndex: number): number {
   let depth = 0;
@@ -86,66 +92,134 @@ function appendRawSegment(segments: RenderSegment[], value: string, useDisplayMo
 }
 
 function splitRenderableSegments(source: string, parentDisplayMode: boolean): RenderSegment[] {
+  const normalizedSource = normalizeCommonLatexTypos(source);
   const segments: RenderSegment[] = [];
   let cursor = 0;
 
   const appendRaw = (end: number) => {
-    appendRawSegment(segments, source.slice(cursor, end), parentDisplayMode && segments.length === 0 && end === source.length);
+    appendRawSegment(segments, normalizedSource.slice(cursor, end), parentDisplayMode && segments.length === 0 && end === normalizedSource.length);
     cursor = end;
   };
 
-  while (cursor < source.length) {
-    const textIndex = source.indexOf('\\text', cursor);
-    const displayIndex = source.indexOf('\\[', cursor);
-    const displayEndIndex = source.indexOf('$$', cursor);
-    const inlineIndex = source.indexOf('\\(', cursor);
-    const dollarIndex = source.indexOf('$', cursor);
-    const candidates = [textIndex, displayIndex, displayEndIndex, inlineIndex, dollarIndex]
+  while (cursor < normalizedSource.length) {
+    const textIndex = normalizedSource.indexOf('\\text', cursor);
+    const displayIndex = normalizedSource.indexOf('\\[', cursor);
+    const displayEndIndex = normalizedSource.indexOf('$$', cursor);
+    const inlineIndex = normalizedSource.indexOf('\\(', cursor);
+    const dollarIndex = normalizedSource.indexOf('$', cursor);
+    const alignedMatch = normalizedSource.slice(cursor).match(/\\begin\{aligned\*?\}/);
+    const alignedIndex = alignedMatch?.index === undefined ? -1 : cursor + alignedMatch.index;
+    const candidates = [textIndex, displayIndex, displayEndIndex, inlineIndex, dollarIndex, alignedIndex]
       .filter((index) => index >= cursor)
       .sort((left, right) => left - right);
     const nextIndex = candidates[0];
 
     if (nextIndex === undefined) {
-      appendRaw(source.length);
+      appendRaw(normalizedSource.length);
       break;
     }
 
     if (nextIndex > cursor) appendRaw(nextIndex);
 
     if (nextIndex === textIndex) {
-      const openBraceIndex = source.slice(nextIndex + '\\text'.length).search(/\s*\{/);
+      const openBraceIndex = normalizedSource.slice(nextIndex + '\\text'.length).search(/\s*\{/);
       if (openBraceIndex < 0) {
         appendRaw(nextIndex + '\\text'.length);
         continue;
       }
       const braceIndex = nextIndex + '\\text'.length + openBraceIndex;
-      const closeBraceIndex = findBalancedGroup(source, braceIndex);
+      const closeBraceIndex = findBalancedGroup(normalizedSource, braceIndex);
       if (closeBraceIndex < 0) {
         appendRaw(nextIndex + '\\text'.length);
         continue;
       }
-      appendTextSegment(segments, source.slice(braceIndex + 1, closeBraceIndex));
+      appendTextSegment(segments, normalizedSource.slice(braceIndex + 1, closeBraceIndex));
       cursor = closeBraceIndex + 1;
+      continue;
+    }
+
+    if (nextIndex === alignedIndex) {
+      const alignedStart = alignedMatch?.[0] || '\\begin{aligned}';
+      const alignedEnd = alignedStart.endsWith('*') ? '\\end{aligned*}' : '\\end{aligned}';
+      const closeIndex = normalizedSource.indexOf(alignedEnd, nextIndex + alignedStart.length);
+      if (closeIndex < 0) {
+        appendRaw(nextIndex + alignedStart.length);
+        continue;
+      }
+      const lines = normalizedSource
+        .slice(nextIndex + alignedStart.length, closeIndex)
+        .split(/\\\\/)
+        .map((line) => line.replace(/^\s*&\s*/, '').trim())
+        .filter(Boolean)
+        .map((line) => splitRenderableSegments(line, false));
+      segments.push({ kind: 'aligned', lines });
+      cursor = closeIndex + alignedEnd.length;
       continue;
     }
 
     const delimiter = nextIndex === displayIndex ? '\\]' : nextIndex === displayEndIndex ? '$$' : nextIndex === inlineIndex ? '\\)' : '$';
     const openLength = delimiter === '$$' ? 2 : 2;
-    const closeIndex = findClosingDelimiter(source, nextIndex + openLength, delimiter);
+    const closeIndex = findClosingDelimiter(normalizedSource, nextIndex + openLength, delimiter);
     if (closeIndex < 0) {
       appendRaw(nextIndex + openLength);
       continue;
     }
 
-    segments.push({
-      kind: 'math',
-      value: source.slice(nextIndex + openLength, closeIndex),
-      displayMode: delimiter === '\\]' || delimiter === '$$',
-    });
+    const mathValue = normalizedSource.slice(nextIndex + openLength, closeIndex);
+    if (mathValue.includes('\\begin{aligned')) {
+      segments.push(...splitRenderableSegments(mathValue, true));
+    } else {
+      segments.push({
+        kind: 'math',
+        value: mathValue,
+        displayMode: delimiter === '\\]' || delimiter === '$$',
+      });
+    }
     cursor = closeIndex + delimiter.length;
   }
 
   return segments;
+}
+
+function renderSegments(container: HTMLElement, segments: RenderSegment[]) {
+  for (const segment of segments) {
+    if (segment.kind === 'text') {
+      const textElement = document.createElement('span');
+      textElement.className = 'latex-text';
+      textElement.textContent = segment.value;
+      container.append(textElement);
+      continue;
+    }
+
+    if (segment.kind === 'aligned') {
+      const alignedElement = document.createElement('span');
+      alignedElement.className = 'latex-aligned';
+      for (const line of segment.lines) {
+        const lineElement = document.createElement('span');
+        lineElement.className = 'latex-aligned-line';
+        renderSegments(lineElement, line);
+        alignedElement.append(lineElement);
+      }
+      container.append(alignedElement);
+      continue;
+    }
+
+    const mathElement = document.createElement('span');
+    try {
+      katex.render(segment.value.trim(), mathElement, {
+        displayMode: segment.displayMode,
+        output: 'htmlAndMathml',
+        throwOnError: false,
+        trust: false,
+        strict: 'ignore',
+      });
+    } catch (error: unknown) {
+      // Keep the result readable even if a model emits unsupported TeX.
+      mathElement.textContent = segment.value;
+      console.debug('KaTeX rendering failed:', error);
+    }
+    container.append(mathElement);
+  }
 }
 
 const LatexRenderer: React.FC<LatexRendererProps> = ({ latex, displayMode = false }) => {
@@ -158,32 +232,7 @@ const LatexRenderer: React.FC<LatexRendererProps> = ({ latex, displayMode = fals
     element.replaceChildren();
     if (!latex.trim()) return;
 
-    const segments = splitRenderableSegments(latex.trim(), displayMode);
-    for (const segment of segments) {
-      if (segment.kind === 'text') {
-        const textElement = document.createElement('span');
-        textElement.className = 'latex-text';
-        textElement.textContent = segment.value;
-        element.append(textElement);
-        continue;
-      }
-
-      const mathElement = document.createElement('span');
-      try {
-        katex.render(segment.value.trim(), mathElement, {
-          displayMode: segment.displayMode,
-          output: 'htmlAndMathml',
-          throwOnError: false,
-          trust: false,
-          strict: 'ignore',
-        });
-      } catch (error: unknown) {
-        // Keep the result readable even if a model emits unsupported TeX.
-        mathElement.textContent = segment.value;
-        console.debug('KaTeX rendering failed:', error);
-      }
-      element.append(mathElement);
-    }
+    renderSegments(element, splitRenderableSegments(latex.trim(), displayMode));
   }, [latex, displayMode]);
 
   return <span ref={containerRef} className={displayMode ? 'block my-2' : 'inline-block'} />;

@@ -102,6 +102,8 @@ textarea::placeholder { color: #67778e; }
 .problem-paper { padding: 24px 30px; }
 .equation { overflow-x: auto; max-width: 100%; padding: 14px 0; font-size: 21px; }
 .latex-text { white-space: pre-wrap; }
+.latex-aligned { display: block; margin: .4em 0; }
+.latex-aligned-line { display: block; min-height: 1.7em; }
 .equation .katex-display { text-align: left; margin: .4em 0; }
 .problem-paper > p { color: var(--muted); font-size: 14px; }
 details { font-size: 14px; }

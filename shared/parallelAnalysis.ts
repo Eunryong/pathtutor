@@ -160,6 +160,7 @@ export function branchPrompt(branch: AnalysisBranch, text: string, hasImage: boo
       ? 'Generate ONLY student (actual submitted steps and corrections), standard (reliable complete textbook solution), and feedback. Do not generate shortcut or genius. Group repetitive algebra into concise steps without dropping decisive reasoning.'
       : 'Generate ONLY shortcut and genius when mathematically meaningful. Every omitted path must have a concrete mathematical reason in missingPaths. Do not generate student, standard or scores. Prefer concise paths; if a distinct path would require lengthy duplication or is not meaningful, omit it with a reason instead of exceeding the output budget.',
     'Keep all mathematical reasoning, conditions, explanations and useful corrections. For error steps require correction. Use LaTeX without Markdown delimiters.',
+    'In problemLatex do not use aligned/aligned* environments, bare & markers or bare line-break commands (\\\\). Keep Korean prose outside math commands and preserve every variable, factor and condition from the source.',
     'For matrix multiplication include matrix_grid data when relevant.',
     'Array order determines step numbers. Do not output stepNumber, path name, path type or color: the application supplies them. Path descriptions should explain the mathematical approach, not repeat UI labels.',
     '<source>', text || '(See image)', '</source>',

@@ -16,7 +16,7 @@
 - Aside 브라우저의 고정 응답으로 오류 → timeout → 성공 확인. 운영 health 200·preflight 204 확인. Gemini 실호출 없음.
 - 입력·결과 axe-core 자동 검사, 오류 설명 연결·그룹 의미·터치 영역 보완. 실제 기기와 스크린리더 수동 확인은 남음.
 - SUIT Variable / Pretendard Variable 자체 호스팅, 라이선스 배포물 포함.
-- 자동 테스트 63개. 운영 smoke test와 UI/mock 검증을 구분.
+- 자동 테스트 64개. 운영 smoke test와 UI/mock 검증을 구분.
 - 자세한 확인 범위와 수동 점검 목록: [UI 구현 기록](UI_UX_IMPLEMENTATION.md).
 
 다음 표의 운영 smoke test는 2026-09-11 최종 배포 후 실행한 결과입니다. 단일 smoke test를 고정 테스트셋 전체 평가 완료로 해석하지 않습니다. 분산 quota·비용 상한은 미구현이며 단순 IP 제한을 비용 보장으로 간주하지 않습니다.

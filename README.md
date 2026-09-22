@@ -357,7 +357,7 @@ Cloudflare Worker에서 외부 API를 호출하고 Wrangler Secret을 사용하�
 └── vite.config.ts
 ```
 
-2026-09-22 복잡한 손글씨 이미지 재현 보완: Gemini 사고 part·출력 상한·선택 시각화·병렬 전사 불일치·correction 누락 처리를 보완했습니다. 이후 한국어 혼합 LaTeX 렌더링과 유사 문제 생성 출력 상한도 보완했습니다. `npm test` 63개, `npm run typecheck`, `npm run build`, Worker dry-run을 통과했고, 최종 Worker에서 `images (1).png` 분석 HTTP 200을 확인했습니다. 최종 분석 재현은 19,486ms, 2회 호출, 14,752토큰, 추정 비용 `$0.047394`였습니다.
+2026-09-22 복잡한 손글씨 이미지 재현 보완: Gemini 사고 part·출력 상한·선택 시각화·병렬 전사 불일치·correction 누락 처리를 보완했습니다. 이후 한국어 혼합 LaTeX와 `aligned` 조건 블록 렌더링, 유사 문제 생성 출력 상한도 보완했습니다. `npm test` 64개, `npm run typecheck`, `npm run build`, Worker dry-run을 통과했고, 최종 Worker에서 `images (1).png` 분석 HTTP 200을 확인했습니다. 최종 분석 재현은 19,486ms, 2회 호출, 14,752토큰, 추정 비용 `$0.047394`였습니다.
 
 운영 smoke test 3/3과 Worker dry-run, Pages 재배포를 완료했습니다. 고정 테스트셋 기반 OCR 품질 비교와 실제 모바일 기기·VoiceOver/TalkBack 점검은 제품 품질 확장 단계의 후속 작업입니다.
 

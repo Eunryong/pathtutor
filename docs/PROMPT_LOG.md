@@ -88,6 +88,7 @@ Transcribe the original problem in problemLatex without simplifying it.
 Generate ONLY student, standard, and feedback.
 Do not generate shortcut or genius.
 Keep mathematical reasoning and corrections. Use LaTeX without Markdown delimiters.
+Do not use aligned/aligned* environments, bare & markers or bare line-break commands in problemLatex. Keep Korean prose outside math commands and preserve every variable, factor and condition.
 For matrix multiplication include matrix_grid data when relevant.
 Do not output stepNumber, path name, path type or color; the application supplies them.
 ```
@@ -118,6 +119,7 @@ Generate ONLY shortcut and genius when mathematically meaningful.
 Every omitted path must have a concrete mathematical reason in missingPaths.
 Do not generate student, standard or scores.
 Keep mathematical reasoning and conditions. Use LaTeX without Markdown delimiters.
+Do not use aligned/aligned* environments, bare & markers or bare line-break commands in problemLatex. Keep Korean prose outside math commands and preserve every variable, factor and condition.
 For matrix multiplication include matrix_grid data when relevant.
 Do not output stepNumber, path name, path type or color; the application supplies them.
 ```

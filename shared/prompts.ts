@@ -39,6 +39,7 @@ Output requirements:
 - Scores in feedback must be numbers from 0 to 100.
 - For matrix multiplication, include matrix_grid visualization with matrixA and matrixB in the relevant step.
 - In LaTeX, do not use $, $$, \\(, \\), \\[ or \\] delimiters and do not use Markdown.
+- Do not use aligned/aligned* environments, bare alignment markers (&), or bare line-break commands (\\\\) in problemLatex. Keep Korean prose outside math commands and preserve every variable, factor and condition from the source.
 ${repairHint ? `
 The previous response failed application validation. Regenerate the complete object and fix only these issues:
 ${repairHint}
