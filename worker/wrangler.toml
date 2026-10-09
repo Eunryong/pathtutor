@@ -22,7 +22,7 @@ GEMINI_TIMEOUT_MS = "50000"
 # From 2027-01-01: input 1.50, output 7.50 USD/M tokens; update before then.
 GEMINI_INPUT_USD_PER_MILLION_TOKENS = "0.75"
 GEMINI_OUTPUT_USD_PER_MILLION_TOKENS = "3.75"
-ALLOWED_ORIGIN = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://pathtutor-edu.pages.dev,https://*.pathtutor-edu.pages.dev,https://pathtutor.eunryong.win"
+ALLOWED_ORIGIN = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,https://pathtutor-edu.pages.dev,https://*.pathtutor-edu.pages.dev,https://pathtutor.eunryong.win,https://pathtutor.eunryong.com"
 # Best-effort isolate-local guard. Set to 0 only for controlled local use.
 RATE_LIMIT_MAX_REQUESTS = "20"
 RATE_LIMIT_WINDOW_MS = "60000"
