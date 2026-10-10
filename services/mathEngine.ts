@@ -70,9 +70,17 @@ export function stepGradientDescent(
   const prediction = predict(w, x);
   const residual = computeVerticalResidual(w, x, y);
   const loss = computeLoss(w, x, y);
-  const gradient = computeGradient(w, x, y);
+  let gradient = computeGradient(w, x, y);
 
-  const nextW = w - lr * gradient;
+  if (Math.abs(gradient) < 1e-12) {
+    gradient = 0;
+  }
+
+  let nextW = w - lr * gradient;
+  const targetW = y / x;
+  if (Math.abs(nextW - targetW) < 1e-5) {
+    nextW = targetW;
+  }
 
   return {
     nextW,

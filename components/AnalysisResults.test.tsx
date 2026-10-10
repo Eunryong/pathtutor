@@ -136,4 +136,26 @@ describe('AnalysisResults', () => {
     fireEvent.click(screen.getByRole('button', { name: /유사 문제 생성 취소/i }));
     expect(onCancelPractice).toHaveBeenCalledTimes(1);
   });
+
+  it('triggers onOpenAiMath callback when clicking AI Math Lab bridge button', () => {
+    const onOpenAiMath = vi.fn();
+    render(
+      <AnalysisResults
+        result={result}
+        selectedPath={studentPath}
+        errorMessage={null}
+        isGeneratingSimilar={false}
+        onPathSelect={vi.fn()}
+        onPracticeSimilar={vi.fn()}
+        onCancelPractice={vi.fn()}
+        onReset={vi.fn()}
+        onOpenAiMath={onOpenAiMath}
+      />,
+    );
+
+    expect(screen.getByText(/이 수학 개념, AI에서는 어떻게 쓰일까요\?/i)).toBeInTheDocument();
+    const aiMathBtn = screen.getByRole('button', { name: /AI 수학 Lab 체험하기/i });
+    fireEvent.click(aiMathBtn);
+    expect(onOpenAiMath).toHaveBeenCalledTimes(1);
+  });
 });

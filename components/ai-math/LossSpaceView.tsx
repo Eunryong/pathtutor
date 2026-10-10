@@ -38,9 +38,13 @@ export const LossSpaceView: React.FC<LossSpaceViewProps> = ({
 
   // Current values
   const currentLoss = computeLoss(w, targetX, targetY);
-  const currentGradient = computeGradient(w, targetX, targetY);
-  const nextW = w - lr * currentGradient;
+  const rawGradient = computeGradient(w, targetX, targetY);
+  const targetW = targetY / targetX;
   const isOptimal = currentLoss < 0.05;
+  const isConverged = Math.abs(w - targetW) < 1e-4 || Math.abs(rawGradient) < 1e-4;
+  const currentGradient = isConverged ? 0 : rawGradient;
+  const nextW = isConverged ? targetW : w - lr * currentGradient;
+  const isOutOfView = currentLoss > lossMax || w < wMin || w > wMax;
 
   // Pre-generate smooth loss curve path
   const curvePoints = generateLossCurve(targetX, targetY, wMin, wMax, 60);
@@ -238,8 +242,8 @@ export const LossSpaceView: React.FC<LossSpaceViewProps> = ({
             />
           )}
 
-          {/* Current Ball on the curve */}
-          {currentLoss <= lossMax ? (
+          {/* Current Ball on the curve or Out-of-bounds indicator */}
+          {!isOutOfView ? (
             <>
               <circle
                 cx={toSvgX(w)}
@@ -261,17 +265,29 @@ export const LossSpaceView: React.FC<LossSpaceViewProps> = ({
               />
             </>
           ) : (
-            /* Warning if exploded out of view */
-            <text
-              x={toSvgX(2.0)}
-              y={toSvgY(14)}
-              fontSize="12"
-              fill="#e11d48"
-              fontWeight="bold"
-              textAnchor="middle"
-            >
-              ⚠ 수치 발산! 화면 밖으로 벗어남
-            </text>
+            /* Warning indicator if exploded out of view */
+            <g className="animate-pulse">
+              <rect
+                x={toSvgX(wMin) + 15}
+                y={toSvgY(lossMax) + 10}
+                width={width - padding.left - padding.right - 30}
+                height={28}
+                rx="6"
+                fill="#fff1f2"
+                stroke="#f43f5e"
+                strokeWidth="1"
+              />
+              <text
+                x={width / 2}
+                y={toSvgY(lossMax) + 28}
+                fontSize="11"
+                fill="#e11d48"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                ⚠ 그래프 범위 초과 (w={w.toFixed(2)}, L={currentLoss.toFixed(1)})
+              </text>
+            </g>
           )}
 
           {/* Arrowhead marker definition */}
@@ -290,19 +306,42 @@ export const LossSpaceView: React.FC<LossSpaceViewProps> = ({
         </svg>
       </div>
 
-      <div className="mt-3 text-[12px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between">
+      <div className="mt-3 text-[12px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <span>
-          기울기 <strong className={currentGradient >= 0 ? 'text-amber-600' : 'text-blue-600'}>
+          기울기{' '}
+          <strong
+            className={
+              isConverged
+                ? 'text-emerald-600'
+                : currentGradient >= 0
+                ? 'text-amber-600'
+                : 'text-blue-600'
+            }
+          >
             dL/dw = {currentGradient.toFixed(1)}
           </strong>
         </span>
         <span>
-          이동 방향 <strong className="text-violet-600">
-            {currentGradient > 0 ? '← 왼쪽 이동' : currentGradient < 0 ? '오른쪽 이동 →' : '정지'}
+          이동 방향{' '}
+          <strong
+            className={
+              isConverged
+                ? 'text-emerald-700 font-bold'
+                : 'text-violet-600 font-bold'
+            }
+          >
+            {isConverged
+              ? '최저점 도달 (이동 없음)'
+              : currentGradient > 0
+              ? '← 왼쪽 이동 (w 감소)'
+              : '오른쪽 이동 (w 증가) →'}
           </strong>
         </span>
         <span>
-          다음 예상 <strong className="text-slate-700">w ≈ {nextW.toFixed(2)}</strong>
+          다음 예상{' '}
+          <strong className="text-slate-700">
+            {isConverged ? 'w = 2.00 (수렴 완료)' : `w ≈ ${nextW.toFixed(2)}`}
+          </strong>
         </span>
       </div>
     </div>

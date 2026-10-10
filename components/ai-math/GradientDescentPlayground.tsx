@@ -4,6 +4,7 @@ import { DataSpaceView } from './DataSpaceView';
 import { LossSpaceView } from './LossSpaceView';
 import { ControllerBar } from './ControllerBar';
 import { ExplanationPanel } from './ExplanationPanel';
+import { PredictStepChallenge } from './PredictStepChallenge';
 import {
   stepGradientDescent,
   evaluateConvergence,
@@ -30,9 +31,18 @@ export const GradientDescentPlayground: React.FC = () => {
 
   const timerRef = useRef<number | null>(null);
 
+  // Check if current weight has converged to target minimum (w=2.0)
+  const isConverged = Math.abs(w - 2.0) < 1e-4;
+
   // Single step execution
   const handleStep = useCallback(() => {
     setW((prevW) => {
+      // If already at minimum, do not step or increase step count
+      if (Math.abs(prevW - 2.0) < 1e-4) {
+        setIsPlaying(false);
+        return prevW;
+      }
+
       // Divergence guard: stop auto-play if w explodes
       if (Math.abs(prevW) > 100) {
         setIsPlaying(false);
@@ -156,6 +166,7 @@ export const GradientDescentPlayground: React.FC = () => {
         lr={lr}
         stepCount={stepCount}
         isPlaying={isPlaying}
+        isConverged={isConverged}
         convergence={convergence}
         onWChange={handleWChange}
         onLrChange={handleLrChange}
@@ -163,6 +174,15 @@ export const GradientDescentPlayground: React.FC = () => {
         onTogglePlay={() => setIsPlaying((prev) => !prev)}
         onReset={handleReset}
         onSelectPreset={handleSelectPreset}
+      />
+
+      {/* Interactive Predict & Step Challenge */}
+      <PredictStepChallenge
+        w={w}
+        lr={lr}
+        isConverged={isConverged}
+        onStep={handleStep}
+        onReset={handleReset}
       />
 
       {/* Explanation & PyTorch Code Panels */}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, Code2, Layers, Lightbulb, Calculator, GraduationCap } from 'lucide-react';
+import LatexRenderer from '../LatexRenderer';
 import {
   computeLoss,
   computeGradient,
@@ -198,40 +199,60 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ w, lr }) => 
 
           {depthLevel === 3 && (
             <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                 <h4 className="font-bold text-slate-900 flex items-center gap-1.5 text-sm">
                   <GraduationCap size={16} className="text-violet-600" />
                   1. 연쇄법칙(Chain Rule)을 통한 손실 함수 미분
                 </h4>
-                <p>
-                  손실 함수 $L(w) = (wx - y)^2$ 는 바깥 함수 $u^2$ 와 안쪽 함수 $u = wx - y$ 의 합성함수입니다:
-                </p>
-                <div className="bg-white p-2.5 rounded border border-slate-200 font-mono text-slate-800">
-                  dL/dw = (dL/du) · (du/dw) = 2(wx - y) · x = 2x(wx - y)
+                <div>
+                  <LatexRenderer latex="손실 함수 $L(w) = (wx - y)^2$는 바깥 함수 $u^2$와 안쪽 함수 $u = wx - y$의 합성함수입니다." />
                 </div>
-                <p>
-                  토이 예제 $x=2, y=4$ 를 대입하면:{' '}
-                  <code className="font-mono font-bold text-violet-700">dL/dw = 2(2)(2w - 4) = 8w - 16 = 8(w - 2)</code>
-                </p>
+                <div className="bg-white p-3 rounded-lg border border-slate-200">
+                  <LatexRenderer
+                    latex="\frac{dL}{dw} = \frac{dL}{du} \cdot \frac{du}{dw} = 2(wx - y) \cdot x = 2x(wx - y)"
+                    displayMode
+                  />
+                </div>
+                <div>
+                  <LatexRenderer latex="토이 예제 데이터 $(x=2, y=4)$를 대입하면 도함수는 다음과 같습니다:" />
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-slate-200">
+                  <LatexRenderer
+                    latex="\frac{dL}{dw} = 2(2)(2w - 4) = 8w - 16 = 8(w - 2)"
+                    displayMode
+                  />
+                </div>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                 <h4 className="font-bold text-slate-900 text-sm">
                   2. 왜 0 &lt; η &lt; 0.25 에서만 수렴하는가? (곡률과 안정성 조건)
                 </h4>
-                <p>
-                  경사하강법 점화식에 $dL/dw = 8(w - 2)$ 를 대입하고 양변에서 2를 빼면:
-                </p>
-                <div className="bg-white p-2.5 rounded border border-slate-200 font-mono text-slate-800">
-                  w_{'{t+1}'} - 2 = (w_t - 2) - η · 8(w_t - 2) = (1 - 8η)(w_t - 2)
+                <div>
+                  <LatexRenderer latex="경사하강법 점화식 $w_{t+1} = w_t - \eta \cdot \frac{dL}{dw}$에 $\frac{dL}{dw} = 8(w_t - 2)$를 대입하고 양변에서 2를 빼면 다음과 같은 점화식이 유도됩니다:" />
                 </div>
-                <p>
-                  수열이 0으로 수렴하려면 공비의 절댓값이 1보다 작아야 합니다: $|1 - 8η| &lt; 1 \implies 0 &lt; η &lt; 0.25$
-                </p>
-                <ul className="list-disc list-inside space-y-1 text-slate-600 pt-1">
-                  <li><strong>η = 0.125 일 때</strong>: $1 - 8(0.125) = 0$ 이 되어 단 1회 스텝 만에 오차 0인 최솟값에 도달합니다.</li>
-                  <li><strong>η = 0.25 일 때</strong>: $w_0 \ne 2$ 일 때 공비가 -1이 되어 최저점을 중심으로 같은 폭으로 무한 진동합니다.</li>
-                  <li><strong>η &gt; 0.25 일 때</strong>: 공비의 절댓값이 1보다 커져 오차가 지수적으로 폭발(Divergence)합니다.</li>
+                <div className="bg-white p-3 rounded-lg border border-slate-200">
+                  <LatexRenderer
+                    latex="w_{t+1} - 2 = (w_t - 2) - 8\eta(w_t - 2) = (1 - 8\eta)(w_t - 2)"
+                    displayMode
+                  />
+                </div>
+                <div>
+                  <LatexRenderer latex="수열 $w_t - 2$가 0으로 수렴하기 위한 필요충분조건은 공비의 절댓값이 1보다 작아야 합니다:" />
+                </div>
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200 text-center">
+                  <LatexRenderer latex="|1 - 8\eta| < 1 \iff -1 < 1 - 8\eta < 1 \iff 0 < \eta < 0.25" displayMode />
+                </div>
+                <ul className="list-disc list-inside space-y-1.5 text-slate-600 pt-1">
+                  <li>
+                    <LatexRenderer latex="$\eta = 0.125$ 일 때: 공비 $1 - 8(0.125) = 0$ 이 되어 단 1회 스텝 만에 오차 0인 최솟값에 도달합니다." />
+                  </li>
+                  <li>
+                    <LatexRenderer latex="$\eta = 0.25$ 일 때: 초기값이 $w_0 \ne 2$ 일 때 공비가 $-1$ 이 되어 최저점을 중심으로 같은 폭으로 무한 진동합니다." />
+                  </li>
+                  <li>
+                    <LatexRenderer latex="$\eta > 0.25$ 일 때: 공비의 절댓값이 1보다 커져 오차가 지수적으로 폭발(Divergence)합니다." />
+                  </li>
                 </ul>
                 <p className="text-slate-500 pt-2 border-t border-slate-200">
                   ※ 이 경계는 2차 함수 곡률 $L''=8$ 에 한정된 기준이며, 실제 딥러닝에서는 손실 곡면의 형태, 옵티마이저 종류(Adam 등), 배치 크기에 따라 학습률 조정 방식이 달라집니다.
@@ -245,30 +266,49 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ w, lr }) => 
       {/* Tab 2: PyTorch Code View */}
       {activeTab === 'code' && (
         <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs text-slate-500 pb-1 flex-wrap gap-2">
+            <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              현재 조작값과 1:1 동기화된 PyTorch 코드 (Live)
+            </span>
+            <span className="font-mono text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md text-[11px] font-semibold border border-slate-200">
+              현재 설정: w={w.toFixed(2)}, η={lr.toFixed(3)}
+            </span>
+          </div>
+
           <div className="p-4 bg-slate-950 text-slate-100 rounded-xl font-mono text-xs overflow-x-auto leading-relaxed border border-slate-800">
-            <span className="text-slate-500 block mb-2"># PyTorch 1:1 매핑 코드</span>
+            <span className="text-slate-500 block mb-2"># PyTorch 1:1 매핑 코드 (현재 실험 파라미터 실시간 적용)</span>
             <span className="text-purple-400">import</span> torch<br />
             <br />
-            <span className="text-slate-500"># 1. 토이 데이터 및 학습할 파라미터 (초기값 w = 0.5)</span><br />
+            <span className="text-slate-500"># 1. 토이 데이터 및 학습할 파라미터 (현재 w = {w.toFixed(2)})</span><br />
             x = torch.<span className="text-blue-400">tensor</span>(2.0)<br />
             y = torch.<span className="text-blue-400">tensor</span>(4.0)<br />
-            w = torch.<span className="text-blue-400">tensor</span>(0.5, requires_grad=<span className="text-amber-400">True</span>)<br />
+            w = torch.<span className="text-blue-400">tensor</span>({w.toFixed(2)}, requires_grad=<span className="text-amber-400">True</span>)<br />
+            lr = <span className="text-violet-400">{lr.toFixed(3)}</span><br />
             <br />
-            <span className="text-slate-500"># 2. 순전파 (Forward Pass): 예측값 1.0, 손실 9.0 계산</span><br />
-            y_hat = w * x<br />
-            loss = (y_hat - y) ** 2<br />
+            <span className="text-slate-500"># 2. 순전파 (Forward Pass): 예측값 {yHat.toFixed(2)}, 손실 {loss.toFixed(2)}</span><br />
+            y_hat = w * x &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># ŷ = {w.toFixed(2)} * 2.0 = {yHat.toFixed(2)}</span><br />
+            loss = (y_hat - y) ** 2 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># L(w) = ({yHat.toFixed(2)} - 4.0)² = {loss.toFixed(2)}</span><br />
             <br />
-            <span className="text-slate-500"># 3. 역전파 (Backward Pass): 연쇄법칙으로 기울기 dL/dw = -12.0 자동 계산</span><br />
-            loss.<span className="text-blue-400">backward</span>()<br />
+            <span className="text-slate-500"># 3. 역전파 (Backward Pass): 연쇄법칙으로 기울기 자동 계산</span><br />
+            loss.<span className="text-blue-400">backward</span>() &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># w.grad = dL/dw = 8w - 16 = {Math.abs(gradient) < 1e-4 ? '0.0' : gradient.toFixed(2)}</span><br />
             <br />
-            <span className="text-slate-500"># 4. 경사하강법 1스텝 업데이트 (학습률 lr = 0.1)</span><br />
+            <span className="text-slate-500"># 4. 경사하강법 1스텝 업데이트</span><br />
             <span className="text-purple-400">with</span> torch.<span className="text-blue-400">no_grad</span>():<br />
-            &nbsp;&nbsp;&nbsp;&nbsp;w -= 0.1 * w.grad &nbsp;&nbsp;<span className="text-emerald-400"># w는 0.5에서 1.7로 업데이트! (손실은 0.36으로 급감)</span><br />
-            &nbsp;&nbsp;&nbsp;&nbsp;w.grad.<span className="text-blue-400">zero_</span>() &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># 다음 스텝을 위해 그래디언트 초기화</span><br />
+            {Math.abs(gradient) < 1e-4 ? (
+              <>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># 기울기 0: 이미 최저점에 도달하여 가중치가 변하지 않음</span><br />
+                &nbsp;&nbsp;&nbsp;&nbsp;w -= lr * w.grad &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-emerald-400"># w 유지: {w.toFixed(2)} (수렴 완료)</span><br />
+              </>
+            ) : (
+              <>
+                &nbsp;&nbsp;&nbsp;&nbsp;w -= lr * w.grad &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-emerald-400"># w: {w.toFixed(2)} → {nextW.toFixed(2)} ({deltaW >= 0 ? '+' : ''}{deltaW.toFixed(2)})</span><br />
+              </>
+            )}
+            &nbsp;&nbsp;&nbsp;&nbsp;w.grad.<span className="text-blue-400">zero_</span>() &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-slate-500"># 다음 스텝을 위해 그래디언트 초기화</span><br />
           </div>
           <p className="text-xs text-slate-500">
-            실제 PyTorch의 <code className="text-slate-800 font-mono font-bold">loss.backward()</code>와{' '}
-            <code className="text-slate-800 font-mono font-bold">optimizer.step()</code>이 위 시각화의 접선 기울기 계산 및 공의 이동과 완전히 동일한 연산입니다.
+            💡 위 코드는 현재 슬라이더로 조절한 <code className="text-slate-800 font-mono font-bold">w={w.toFixed(2)}</code>, <code className="text-slate-800 font-mono font-bold">η={lr.toFixed(3)}</code> 값이 즉시 반영된 라이브 코드입니다. PyTorch의 <code className="text-slate-800 font-mono font-bold">loss.backward()</code>와 <code className="text-slate-800 font-mono font-bold">optimizer.step()</code>이 화면 속 그래프의 기울기 및 공의 이동과 완전히 일치합니다.
           </p>
         </div>
       )}

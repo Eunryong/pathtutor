@@ -16,6 +16,7 @@ interface AnalysisResultsProps {
   previewUrl?: string | null;
   originalText?: string;
   hasStudentWork?: boolean;
+  onOpenAiMath?: () => void;
 }
 
 const StepContent: React.FC<{ step: Step }> = ({ step }) => {
@@ -58,6 +59,32 @@ export default function AnalysisResults(props: AnalysisResultsProps) {
     </section>}
     {result.missingPaths.length > 0 && <details className="paper supplemental"><summary>일부 풀이 경로가 없는 이유</summary>{result.missingPaths.map(item => <p key={item.type}><strong>{names[item.type]}</strong> — {item.reason}</p>)}</details>}
     {props.hasStudentWork !== false && <details className="paper supplemental"><summary>AI 참고 평가 보기</summary><p className="small muted">AI의 추정치이며 실제 성적이나 검증된 학습 효과를 뜻하지 않습니다.</p><dl className="assessment">{[['계산 정확도', result.feedback.accuracy], ['개념 이해', result.feedback.conceptualUnderstanding], ['전략 효율', result.feedback.strategyEfficiency]].map(([label, score]) => <div key={label}><dt>{label}</dt><dd>{score} / 100</dd></div>)}</dl></details>}
+    {props.onOpenAiMath && (
+      <section className="paper" style={{ borderLeft: '4px solid #3b82f6', background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: '640px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 10px', borderRadius: '9999px', background: '#dbeafe', color: '#1d4ed8', fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>
+              💡 수학 개념의 확장 · AI 연결
+            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
+              이 수학 개념, AI에서는 어떻게 쓰일까요?
+            </h2>
+            <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: 1.6 }}>
+              방금 살펴본 <strong>함수의 최솟값, 접선의 기울기, 미분의 연쇄법칙</strong>은 인공지능이 데이터 오차(손실)를 0으로 줄여나가는 <strong>경사하강법(Gradient Descent)</strong>의 핵심 수학입니다. 
+              PathTutor AI 수학 Lab에서 모델이 스스로 학습하는 과정을 2D 시각화로 직접 조작해 보세요!
+            </p>
+          </div>
+          <button
+            type="button"
+            className="primary"
+            onClick={props.onOpenAiMath}
+            style={{ alignSelf: 'center', whiteSpace: 'nowrap' }}
+          >
+            AI 수학 Lab 체험하기 <ArrowRight size={18} />
+          </button>
+        </div>
+      </section>
+    )}
     <section className="practice-strip"><div><h2>이제, 내 힘으로 풀어볼까요?</h2><p className="muted">비슷한 문제로 방금 살펴본 개념을 연습해요.</p></div><button className="primary" onClick={props.isGeneratingSimilar ? props.onCancelPractice : props.onPracticeSimilar}>{props.isGeneratingSimilar ? '유사 문제 생성 취소' : '유사 문제 풀기'} <ArrowRight size={18} /></button></section>
   </div>;
 }

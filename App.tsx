@@ -115,6 +115,7 @@ const App: React.FC = () => {
                   previewUrl={controller.previewUrl}
                   originalText={controller.inputProblem}
                   hasStudentWork={controller.hasStudentWork}
+                  onOpenAiMath={() => setActiveTab('ai-math')}
                 />
               </>
             )}

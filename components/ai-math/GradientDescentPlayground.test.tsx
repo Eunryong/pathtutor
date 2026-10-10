@@ -69,9 +69,39 @@ describe('GradientDescentPlayground Component', () => {
     fireEvent.click(stepBtn);
 
     expect(screen.getAllByText('0.00').length).toBeGreaterThan(0);
+
+    // After convergence, button should indicate minimum reached and be disabled
+    const convergedBtn = screen.getByRole('button', { name: /최저점 도달 \(이동 없음\)/i });
+    expect(convergedBtn).toBeDisabled();
+
+    // Clicking again should not change step count or state
+    fireEvent.click(convergedBtn);
+    expect(screen.getByText(/누적 스텝:/i)).toHaveTextContent('누적 스텝: 1 회');
   });
 
-  it('switches between concept explanation depths and PyTorch code view', () => {
+  it('provides an interactive Predict & Step challenge before moving', () => {
+    render(<GradientDescentPlayground />);
+
+    // Initial state: w=0.5, gradient is negative (-12.0)
+    expect(screen.getByText(/예측하고 확인하기 \(Predict & Step\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Q\. 손실 L\(w\)를 줄이기 위해/i)).toBeInTheDocument();
+
+    // Choose correct direction: "오른쪽으로 증가 (+ 방향)"
+    const increaseBtn = screen.getByRole('button', { name: /오른쪽으로 증가 \(\+ 방향\)/i });
+    fireEvent.click(increaseBtn);
+
+    // Verification feedback appears
+    expect(screen.getByText(/정답입니다! 🎉/i)).toBeInTheDocument();
+
+    // Click confirmation step button inside the challenge
+    const confirmStepBtn = screen.getByRole('button', { name: /한 걸음 이동\(Step\)하여 실제로 확인하기/i });
+    fireEvent.click(confirmStepBtn);
+
+    // Step has been applied: w becomes 1.70, step count becomes 1
+    expect(screen.getByText(/누적 스텝:/i)).toHaveTextContent('누적 스텝: 1 회');
+  });
+
+  it('switches between concept explanation depths and PyTorch live synchronized code view', () => {
     render(<GradientDescentPlayground />);
 
     // Check default depth: 1단계 직관
@@ -82,15 +112,18 @@ describe('GradientDescentPlayground Component', () => {
     fireEvent.click(depth2Btn);
     expect(screen.getByText(/실시간 라이브 연산 대입/i)).toBeInTheDocument();
 
-    // Switch to depth 3: 상세 미분
+    // Switch to depth 3: 상세 미분 (KaTeX rendered math)
     const depth3Btn = screen.getByRole('button', { name: /3\. 상세 미분 & 유도/i });
     fireEvent.click(depth3Btn);
     expect(screen.getByText(/연쇄법칙\(Chain Rule\)을 통한 손실 함수 미분/i)).toBeInTheDocument();
 
-    // Switch to PyTorch code tab
+    // Switch to PyTorch code tab and verify live sync
     const pytorchTabBtn = screen.getByRole('button', { name: /PyTorch 코드로 보기/i });
     fireEvent.click(pytorchTabBtn);
 
     expect(screen.getByText(/# PyTorch 1:1 매핑 코드/i)).toBeInTheDocument();
+    // Live synced values for w=0.50 and lr=0.100
+    expect(screen.getByText(/현재 설정: w=0.50, η=0.100/i)).toBeInTheDocument();
+    expect(screen.getByText(/# 1\. 토이 데이터 및 학습할 파라미터 \(현재 w = 0\.50\)/i)).toBeInTheDocument();
   });
 });
