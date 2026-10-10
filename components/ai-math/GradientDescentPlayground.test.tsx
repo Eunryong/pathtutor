@@ -70,13 +70,16 @@ describe('GradientDescentPlayground Component', () => {
 
     expect(screen.getAllByText('0.00').length).toBeGreaterThan(0);
 
-    // After convergence, button should indicate minimum reached and be disabled
-    const convergedBtn = screen.getByRole('button', { name: /최저점 도달 \(이동 없음\)/i });
-    expect(convergedBtn).toBeDisabled();
+    // After convergence, button should indicate minimum reached and remain clickable for discovery verification
+    const convergedBtns = screen.getAllByRole('button', { name: /최저점 Step 확인/i });
+    expect(convergedBtns.length).toBeGreaterThan(0);
+    const controllerStepBtn = convergedBtns[0];
+    expect(controllerStepBtn).not.toBeDisabled();
 
-    // Clicking again should not change step count or state
-    fireEvent.click(convergedBtn);
+    // Clicking again should not change step count or state, and stationary explanation should appear
+    fireEvent.click(controllerStepBtn);
     expect(screen.getByText(/누적 스텝:/i)).toHaveTextContent('누적 스텝: 1 회');
+    expect(screen.getByText(/기울기가 0이므로 이동량이 없습니다/i)).toBeInTheDocument();
   });
 
   it('provides an interactive Predict & Step challenge before moving', () => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, CheckCircle2, AlertTriangle, ArrowRight, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { HelpCircle, CheckCircle2, AlertTriangle, ArrowRight, RotateCcw, ChevronDown, ChevronUp, Footprints } from 'lucide-react';
 import LatexRenderer from '../LatexRenderer';
 
 interface PredictStepChallengeProps {
@@ -81,13 +81,23 @@ export const PredictStepChallenge: React.FC<PredictStepChallengeProps> = ({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={onReset}
-                className="shrink-0 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
-              >
-                <RotateCcw size={13} /> 초기 상태(w=0.5)로 리셋
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={onStep}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                  title="기울기가 0인 상태에서 Step을 실행해 이동량 0을 확인합니다."
+                >
+                  <Footprints size={13} /> 최저점 Step 확인
+                </button>
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                >
+                  <RotateCcw size={13} /> 리셋
+                </button>
+              </div>
             </div>
           ) : (
             <>

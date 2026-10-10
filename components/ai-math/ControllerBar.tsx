@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play, Pause, RotateCcw, Footprints, Sparkles } from 'lucide-react';
+import LatexRenderer from '../LatexRenderer';
 import { ConvergenceInfo } from '../../services/mathEngine';
 
 interface ControllerBarProps {
@@ -9,6 +10,7 @@ interface ControllerBarProps {
   isPlaying: boolean;
   isConverged?: boolean;
   convergence: ConvergenceInfo;
+  stationaryNotice?: boolean;
   onWChange: (newW: number) => void;
   onLrChange: (newLr: number) => void;
   onStep: () => void;
@@ -24,6 +26,7 @@ export const ControllerBar: React.FC<ControllerBarProps> = ({
   isPlaying,
   isConverged = false,
   convergence,
+  stationaryNotice = false,
   onWChange,
   onLrChange,
   onStep,
@@ -177,6 +180,22 @@ export const ControllerBar: React.FC<ControllerBarProps> = ({
         </div>
       </div>
 
+      {/* Stationary minimum confirmation notice */}
+      {stationaryNotice && (
+        <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-3.5 text-xs text-emerald-950 flex items-start gap-2.5 animate-fadeIn">
+          <Sparkles className="text-emerald-600 shrink-0 mt-0.5" size={17} />
+          <div className="space-y-1">
+            <strong className="block text-sm font-bold text-emerald-900">
+              최저점(<LatexRenderer latex="w=2.00" />) 확인: 기울기가 0이므로 이동량이 없습니다!
+            </strong>
+            <p className="text-emerald-800 leading-relaxed">
+              현재 접선의 기울기 <LatexRenderer latex="\frac{dL}{dw} = 0.0" /> 이므로, 경사하강법 공식{' '}
+              <LatexRenderer latex="w_{t+1} = w_t - \eta \cdot (0) = w_t" /> 에 의해 가중치 위치가 그대로 유지됩니다.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Row: Action Buttons */}
       <div className="flex items-center justify-between pt-2">
         <div className="text-xs text-slate-500 font-mono">
@@ -196,20 +215,20 @@ export const ControllerBar: React.FC<ControllerBarProps> = ({
           <button
             type="button"
             onClick={onStep}
-            disabled={isPlaying || isConverged}
+            disabled={isPlaying}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm active:scale-95 ${
               isConverged
-                ? 'bg-slate-200 text-slate-500 cursor-not-allowed border border-slate-300'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-500/30'
                 : 'bg-slate-900 hover:bg-slate-800 text-white'
-            } disabled:opacity-50`}
+            } disabled:opacity-50 cursor-pointer`}
             title={
               isConverged
-                ? '이미 최저점(w=2.0)에 도달하여 추가 이동이 없습니다.'
+                ? '기울기가 0인 상태에서 Step을 실행해 이동량 0을 확인합니다.'
                 : '한 걸음 이동'
             }
           >
             <Footprints size={14} />{' '}
-            {isConverged ? '최저점 도달 (이동 없음)' : '한 걸음 이동 (Step)'}
+            {isConverged ? '최저점 Step 확인 (이동량 0)' : '한 걸음 이동 (Step)'}
           </button>
 
           <button

@@ -28,7 +28,7 @@ export const GradientDescentPlayground: React.FC = () => {
       gradient: -12.0,
     },
   ]);
-
+  const [stationaryNotice, setStationaryNotice] = useState<boolean>(false);
   const timerRef = useRef<number | null>(null);
 
   // Check if current weight has converged to target minimum (w=2.0)
@@ -37,11 +37,14 @@ export const GradientDescentPlayground: React.FC = () => {
   // Single step execution
   const handleStep = useCallback(() => {
     setW((prevW) => {
-      // If already at minimum, do not step or increase step count
+      // If already at minimum, trigger stationary feedback without increasing step count
       if (Math.abs(prevW - 2.0) < 1e-4) {
         setIsPlaying(false);
+        setStationaryNotice(true);
         return prevW;
       }
+
+      setStationaryNotice(false);
 
       // Divergence guard: stop auto-play if w explodes
       if (Math.abs(prevW) > 100) {
@@ -55,9 +58,10 @@ export const GradientDescentPlayground: React.FC = () => {
       setStepCount((prev) => prev + 1);
       setHistory((prevHist) => [...prevHist.slice(-20), record]);
 
-      // If perfectly converged (within tiny epsilon), pause auto-play
+      // If perfectly converged on this step, pause auto-play and trigger notice
       if (Math.abs(nextW - 2.0) < 1e-4) {
         setIsPlaying(false);
+        setStationaryNotice(true);
       }
 
       return nextW;
@@ -85,6 +89,7 @@ export const GradientDescentPlayground: React.FC = () => {
   // Reset to initial w
   const handleReset = () => {
     setIsPlaying(false);
+    setStationaryNotice(false);
     setW(initialW);
     setStepCount(0);
     const { record } = stepGradientDescent(initialW, lr, 2.0, 4.0);
@@ -94,6 +99,7 @@ export const GradientDescentPlayground: React.FC = () => {
   // Change weight manually via slider
   const handleWChange = (newW: number) => {
     setIsPlaying(false);
+    setStationaryNotice(false);
     setW(newW);
     setInitialW(newW);
     setStepCount(0);
@@ -109,6 +115,7 @@ export const GradientDescentPlayground: React.FC = () => {
   // Preset selection
   const handleSelectPreset = (presetW: number, presetLr: number) => {
     setIsPlaying(false);
+    setStationaryNotice(false);
     setW(presetW);
     setInitialW(presetW);
     setLr(presetLr);
@@ -168,6 +175,7 @@ export const GradientDescentPlayground: React.FC = () => {
         isPlaying={isPlaying}
         isConverged={isConverged}
         convergence={convergence}
+        stationaryNotice={stationaryNotice}
         onWChange={handleWChange}
         onLrChange={handleLrChange}
         onStep={handleStep}
