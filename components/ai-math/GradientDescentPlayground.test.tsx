@@ -84,7 +84,7 @@ describe('GradientDescentPlayground Component', () => {
 
     // Initial state: w=0.5, gradient is negative (-12.0)
     expect(screen.getByText(/예측하고 확인하기 \(Predict & Step\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Q\. 손실 L\(w\)를 줄이기 위해/i)).toBeInTheDocument();
+    expect(screen.getByText(/어느 방향으로 이동시켜야 할까요/i)).toBeInTheDocument();
 
     // Choose correct direction: "오른쪽으로 증가 (+ 방향)"
     const increaseBtn = screen.getByRole('button', { name: /오른쪽으로 증가 \(\+ 방향\)/i });

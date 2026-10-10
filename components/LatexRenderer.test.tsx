@@ -36,4 +36,16 @@ describe('LatexRenderer', () => {
     expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
+
+  it('renders inline single-dollar math seamlessly within Korean sentences', () => {
+    const inlineProse = "현재 접선의 기울기는 $\\frac{dL}{dw} = 0.0$ 이며 가중치는 $w = 2.0$ 입니다.";
+    const { container } = render(<LatexRenderer latex={inlineProse} />);
+
+    expect(container).toHaveTextContent('현재 접선의 기울기는');
+    expect(container).toHaveTextContent('이며 가중치는');
+    expect(container).toHaveTextContent('입니다.');
+    expect(container.querySelectorAll('.katex').length).toBe(2);
+    expect(container.textContent).not.toContain('$\\frac');
+    expect(container.textContent).not.toContain('$w');
+  });
 });

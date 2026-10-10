@@ -115,7 +115,7 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ w, lr }) => 
                     안개 낀 산골짜기에서 발바닥으로 길 찾기
                   </h4>
                   <p className="text-xs text-blue-800/90 leading-normal">
-                    앞이 전혀 보이지 않는 짙은 안개 속에서 가장 낮은 골짜기(오차가 0인 곳)로
+                    앞이 전혀 보이지 않는 짙은 안개 속에서 가장 낮은 골짜기(손실이 최소인 곳)로
                     내려가려면 어떻게 해야 할까요?
                     <br />
                     지금 딛고 서 있는 <strong>발바닥의 경사(기울기)</strong>를 느끼고,{' '}
@@ -129,8 +129,8 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ w, lr }) => 
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
                   <strong className="text-slate-800 block mb-1">🎯 오차를 줄인다는 것</strong>
                   <span className="text-slate-600">
-                    현재 데이터 점 (2, 4)와 모델의 예측선 사이의 <strong>세로 잔차</strong>를 0으로
-                    만드는 직선의 기울기 <code className="text-blue-600 font-bold">w=2.0</code>을
+                    현재 데이터 점 (2, 4)와 모델의 예측선 사이의 <strong>세로 잔차</strong>를 줄여
+                    손실을 최소화하는 직선의 기울기 <code className="text-blue-600 font-bold">w=2.0</code>을
                     스스로 찾아가는 여정입니다.
                   </span>
                 </div>

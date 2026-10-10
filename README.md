@@ -2,7 +2,7 @@
 
 이미지와 텍스트로 입력된 수학 풀이를 분석해 학습자의 풀이 과정을 재구성하고, 오류 피드백과 여러 풀이 경로를 보여주는 멀티모달 AI 튜터 프로토타입입니다.
 
-> 이 저장소는 2025년 12월부터 2026년 1월까지 Google AI Studio에서 설계·검증한 프로토타입을 바탕으로, Cloudflare Workers와 Gemini Flash API 기반 후속 구조를 구현하는 프로젝트입니다. 현재 Worker API와 프론트엔드를 각각 Cloudflare에 배포했고, 운영 Worker에서 텍스트 분석·이미지 OCR·유사 문제 생성 smoke test를 3/3 성공시켰습니다. 기본 Pages 주소와 `pathtutor.eunryong.win` custom domain 모두 운영 중입니다.
+> 이 저장소는 2025년 12월부터 2026년 1월까지 Google AI Studio에서 설계·검증한 프로토타입을 바탕으로, Cloudflare Workers와 Gemini Flash API 기반 후속 구조를 구현하는 프로젝트입니다. 현재 Worker API와 프론트엔드를 각각 Cloudflare에 배포했고, 운영 Worker에서 텍스트 분석·이미지 OCR·유사 문제 생성 smoke test를 3/3 성공시켰습니다. 기본 Pages 주소와 `pathtutor.eunryong.com`, `pathtutor.eunryong.win` custom domain 모두 정상 운영 중입니다.
 
 ## 프로젝트 정보
 
@@ -12,7 +12,7 @@
 | 기간 | 2025.12 ~ 2026.01 |
 | 형태 | Google AI Studio 기반 AI 프로토타입 |
 | 현재 클라이언트 | React 19 + Vite + TypeScript |
-| 현재 프론트엔드 배포 | Cloudflare Pages (`pathtutor.eunryong.win` 연결 중, `pathtutor-edu.pages.dev` 운영) |
+| 현재 프론트엔드 배포 | Cloudflare Pages (`pathtutor.eunryong.com`, `pathtutor.eunryong.win`, `pathtutor-edu.pages.dev` 운영) |
 | 프로토타입 당시 모델 호출 | 브라우저에서 Gemini 3 Pro Preview 직접 호출 |
 | 현재 후속 모델 호출 | Cloudflare Worker에서 Gemini REST API 호출 |
 | 후속 방향 | Cloudflare Workers + Gemini Flash API |
@@ -63,6 +63,16 @@
 - SUIT 제목·Pretendard 본문 자체 호스팅, OFL 라이선스 동봉
 
 실측 모델 점수와 학습 효과를 동일시하지 않습니다. 구현 내역과 검증 한계는 [UI 보완 기록](docs/UI_UX_IMPLEMENTATION.md)을 참고하세요.
+
+### AI 수학 Lab (경사하강법과 미분)
+
+"인공지능 모델은 어떻게 학습할까?"라는 질문에서 출발해, 오차(손실)를 줄여가는 과정 속에서 미분의 의미를 직관적으로 체험하는 인터랙티브 학습 공간입니다.
+
+- **2D 손실 곡선 & 예측선 실시간 연동**: 가중치 $w$와 학습률 $\eta$ 조절에 따라 $ŷ=wx$ 모델의 예측선과 손실 곡선 $L(w)$ 위의 위치 및 접선 기울기가 동기화되어 즉각 반영됩니다.
+- **방향 예측 챌린지 (Predict & Step)**: Step 버튼을 누르기 전, 현재 접선 기울기 부호($\frac{dL}{dw}$)를 바탕으로 손실을 줄이려면 가중치를 어느 방향으로 움직여야 할지 학습자가 먼저 예측하고 검증하는 능동적 학습 흐름을 제공합니다.
+- **수렴/발산 실험 프리셋**: $\eta=0.1$ (안정 수렴), $\eta=0.125$ (한 번에 최적 도달), $\eta=0.25$ (등폭 진동), $\eta=0.30$ (발산 및 범위 초과 안내) 프리셋 지원.
+- **3단계 설명 & PyTorch 실시간 코드 연동**: 개념 직관(골짜기 비유) → 단계별 수식(라이브 연산 대입) → 상세 미분(KaTeX 렌더링 수식 증명) 및 현재 파라미터가 실시간 반영되는 PyTorch 코드 예제 제공.
+- **풀이 분석 연계 브릿지**: 문제 풀이 분석 결과에서 미분/극값/최적화 개념이 다뤄질 때는 미분 특화 안내를, 그 외 일반 문제에서는 최적화 학습의 일반 연결 안내("관련 AI 수학 Lab 둘러보기")를 문맥에 맞게 동적으로 제공합니다.
 
 ### Veo 실험 기능
 

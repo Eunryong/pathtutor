@@ -8,13 +8,13 @@
 - URL: `https://pathtutor-api.pathtutor.workers.dev`
 - 상태 확인: `GET /api/health`
 - 프론트엔드: `https://pathtutor-edu.pages.dev`
-- custom domain: `https://pathtutor.eunryong.win` (HTTP 200, CSP 확인)
+- custom domain: `https://pathtutor.eunryong.com`, `https://pathtutor.eunryong.win` (HTTP 200, CSP 확인)
 - Pages preview: `https://2b6f4e6a.pathtutor-edu.pages.dev`
 - Pages 프로젝트: `pathtutor-edu`
 - 최신 Worker 버전: `2cbb3753-69fd-4db4-b8d0-0dedb9d9fda3`
 - Placement: `gcp:asia-northeast3` (Gemini API egress 지역 고정)
 
-기본 Pages 주소, preview 주소와 `https://pathtutor.eunryong.win`은 `worker/wrangler.toml`의 `ALLOWED_ORIGIN`에 반영되어 있습니다. custom domain DNS가 활성화되면 해당 주소에서 Worker API를 호출할 수 있습니다.
+기본 Pages 주소, preview 주소와 `https://pathtutor.eunryong.com`, `https://pathtutor.eunryong.win`은 `worker/wrangler.toml`의 `ALLOWED_ORIGIN`에 반영되어 있습니다. custom domain DNS가 활성화되어 해당 주소에서 Worker API를 호출할 수 있습니다.
 
 custom domain DNS 레코드:
 

@@ -158,7 +158,7 @@ function splitRenderableSegments(source: string, parentDisplayMode: boolean): Re
     }
 
     const delimiter = nextIndex === displayIndex ? '\\]' : nextIndex === displayEndIndex ? '$$' : nextIndex === inlineIndex ? '\\)' : '$';
-    const openLength = delimiter === '$$' ? 2 : 2;
+    const openLength = delimiter === '$' ? 1 : 2;
     const closeIndex = findClosingDelimiter(normalizedSource, nextIndex + openLength, delimiter);
     if (closeIndex < 0) {
       appendRaw(nextIndex + openLength);

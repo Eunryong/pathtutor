@@ -28,12 +28,13 @@ flowchart LR
 
 | 역할 | 주소 | 상태 |
 | --- | --- | --- |
-| 프론트엔드 기본 주소 | `https://pathtutor-edu.pages.dev` | 배포 완료 |
-| 프론트엔드 커스텀 주소 | `https://pathtutor.eunryong.win` | Pages 등록 완료, CNAME 연결 대기 |
+| 프론트엔드 기본 주소 | `https://pathtutor-edu.pages.dev` | 배포 완료 · 운영 중 |
+| 프론트엔드 커스텀 주소 | `https://pathtutor.eunryong.com` | 도메인 연결 완료 · 운영 중 |
+| 프론트엔드 커스텀 주소 (서브) | `https://pathtutor.eunryong.win` | 도메인 연결 완료 · 운영 중 |
 | 분석 API | `https://pathtutor-api.pathtutor.workers.dev` | 배포·운영 smoke test 완료 |
 | API 상태 확인 | `GET /api/health` | 모델명과 `ok` 반환 |
 
-커스텀 도메인은 Pages에 등록되어 있지만 DNS에 `pathtutor → pathtutor-edu.pages.dev` CNAME이 추가되어야 활성화됩니다. 도메인 연결 전에도 Pages 기본 주소로 동일한 프론트엔드를 확인할 수 있습니다.
+커스텀 도메인(`pathtutor.eunryong.com`, `pathtutor.eunryong.win`)과 Pages 기본 주소 모두 정상적으로 프론트엔드와 Worker API에 연결되어 운영 중입니다.
 
 ## 2. 수학 풀이 분석 흐름
 
@@ -192,9 +193,9 @@ flowchart LR
 - Worker placement를 `gcp:asia-northeast3`로 설정
 - 운영 Worker의 텍스트·이미지·practice smoke test 3/3 성공
 
-### 아직 운영 연결이 필요한 부분
+### 향후 과제 및 고도화 항목
 
-- `pathtutor.eunryong.win`은 Pages custom domain에 등록되었고 DNS CNAME 연결이 완료되면 활성화됩니다.
+- `pathtutor.eunryong.com` 및 `pathtutor.eunryong.win` 커스텀 도메인 연결 완료 (운영 중).
 - 고정 테스트셋 기반 OCR 품질·누락률·응답 시간·비용 비교는 별도 평가 작업입니다.
 - Veo 영상 생성은 핵심 분석 흐름에 포함하지 않고 실험 기능으로 분리합니다.
 - 요청량이 늘어 isolate-local rate limit의 한계를 확인하면 분산 rate limit 또는 비동기 job을 검토합니다.

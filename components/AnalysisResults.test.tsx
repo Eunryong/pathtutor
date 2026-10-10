@@ -137,7 +137,7 @@ describe('AnalysisResults', () => {
     expect(onCancelPractice).toHaveBeenCalledTimes(1);
   });
 
-  it('triggers onOpenAiMath callback when clicking AI Math Lab bridge button', () => {
+  it('triggers onOpenAiMath callback when clicking AI Math Lab bridge button on general problems', () => {
     const onOpenAiMath = vi.fn();
     render(
       <AnalysisResults
@@ -153,9 +153,33 @@ describe('AnalysisResults', () => {
       />,
     );
 
-    expect(screen.getByText(/이 수학 개념, AI에서는 어떻게 쓰일까요\?/i)).toBeInTheDocument();
-    const aiMathBtn = screen.getByRole('button', { name: /AI 수학 Lab 체험하기/i });
+    expect(screen.getByRole('heading', { name: /관련 AI 수학 Lab 둘러보기/i })).toBeInTheDocument();
+    const aiMathBtn = screen.getByRole('button', { name: /관련 AI 수학 Lab 둘러보기/i });
     fireEvent.click(aiMathBtn);
     expect(onOpenAiMath).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays calculus-specific bridge text when the problem involves derivatives/calculus', () => {
+    const calculusResult: AnalysisResult = {
+      ...result,
+      problemLatex: "f'(x) = 2x - 4",
+      problemDescription: '도함수와 접선의 기울기를 이용한 극값 구하기',
+    };
+    render(
+      <AnalysisResults
+        result={calculusResult}
+        selectedPath={studentPath}
+        errorMessage={null}
+        isGeneratingSimilar={false}
+        onPathSelect={vi.fn()}
+        onPracticeSimilar={vi.fn()}
+        onCancelPractice={vi.fn()}
+        onReset={vi.fn()}
+        onOpenAiMath={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/이 미분 개념, AI에서는 어떻게 쓰일까요\?/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /AI 수학 Lab 체험하기/i })).toBeInTheDocument();
   });
 });

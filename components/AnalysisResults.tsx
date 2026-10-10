@@ -28,6 +28,33 @@ const StepContent: React.FC<{ step: Step }> = ({ step }) => {
   </>;
 }
 
+export function getAiMathBridgeContent(result: AnalysisResult) {
+  const fullText = [
+    result.problemLatex,
+    result.problemDescription,
+    result.feedback.summary,
+    ...result.studentPath.steps.map(s => `${s.latex} ${s.explanation} ${s.strategy || ''}`),
+  ].join(' ').toLowerCase();
+
+  const isCalculus = /미분|도함수|접선|극대|극소|극값|최댓값|최솟값|연쇄법칙|derivative|calculus|tangent|\\frac\{d|\b(f'|y')/.test(fullText);
+
+  if (isCalculus) {
+    return {
+      badge: '💡 수학 개념의 확장 · AI 연결',
+      title: '이 미분 개념, AI에서는 어떻게 쓰일까요?',
+      description: '방금 살펴본 함수의 최솟값, 접선의 기울기, 미분의 연쇄법칙은 인공지능이 모델의 오차(손실)를 줄여나가는 경사하강법(Gradient Descent)의 핵심 수학입니다. PathTutor AI 수학 Lab에서 모델이 스스로 학습하는 과정을 2D 시각화로 직접 조작해 보세요!',
+      buttonLabel: 'AI 수학 Lab 체험하기',
+    };
+  }
+
+  return {
+    badge: '💡 AI 수학 탐구 · 경사하강법 Lab',
+    title: '관련 AI 수학 Lab 둘러보기',
+    description: '수학에서 미지수를 구하고 오차를 줄여가는 과정은, AI가 데이터를 바탕으로 최적의 가중치를 찾아 손실을 줄이는 원리와 연결되어 있습니다. PathTutor AI 수학 Lab에서 인공지능이 손실을 줄이며 학습하는 과정을 2D 시각화로 직접 확인해 보세요!',
+    buttonLabel: '관련 AI 수학 Lab 둘러보기',
+  };
+}
+
 export default function AnalysisResults(props: AnalysisResultsProps) {
   const { result } = props;
   const path = props.selectedPath || result.studentPath;
@@ -41,6 +68,8 @@ export default function AnalysisResults(props: AnalysisResultsProps) {
   const other = path.type === 'standard' ? result.studentPath : standard;
   const title = (item: Path) => item.type === 'student' && props.hasStudentWork === false ? '문제 풀이' : names[item.type];
   const errors = result.studentPath.steps.filter(item => item.isError).length;
+  const bridge = getAiMathBridgeContent(result);
+
   return <div className="results-page">
     <div className="section-heading"><div><p className="eyebrow">나의 풀이 노트</p><h1>생각의 흐름을 살펴봐요</h1></div><button className="secondary" onClick={props.onReset}>새 문제 풀기</button></div>
     {props.errorMessage && <div className="error-banner" role="alert">{props.errorMessage}</div>}
@@ -64,14 +93,13 @@ export default function AnalysisResults(props: AnalysisResultsProps) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
           <div style={{ maxWidth: '640px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 10px', borderRadius: '9999px', background: '#dbeafe', color: '#1d4ed8', fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>
-              💡 수학 개념의 확장 · AI 연결
+              {bridge.badge}
             </div>
             <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
-              이 수학 개념, AI에서는 어떻게 쓰일까요?
+              {bridge.title}
             </h2>
             <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: 1.6 }}>
-              방금 살펴본 <strong>함수의 최솟값, 접선의 기울기, 미분의 연쇄법칙</strong>은 인공지능이 데이터 오차(손실)를 0으로 줄여나가는 <strong>경사하강법(Gradient Descent)</strong>의 핵심 수학입니다. 
-              PathTutor AI 수학 Lab에서 모델이 스스로 학습하는 과정을 2D 시각화로 직접 조작해 보세요!
+              {bridge.description}
             </p>
           </div>
           <button
@@ -80,7 +108,7 @@ export default function AnalysisResults(props: AnalysisResultsProps) {
             onClick={props.onOpenAiMath}
             style={{ alignSelf: 'center', whiteSpace: 'nowrap' }}
           >
-            AI 수학 Lab 체험하기 <ArrowRight size={18} />
+            {bridge.buttonLabel} <ArrowRight size={18} />
           </button>
         </div>
       </section>
