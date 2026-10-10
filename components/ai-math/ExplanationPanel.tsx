@@ -107,14 +107,79 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ w, lr }) => 
       {activeTab === 'concept' && (
         <div className="space-y-4">
           {depthLevel === 1 && (
-            <div className="space-y-3 text-slate-700 text-sm leading-relaxed">
+            <div className="space-y-3.5 text-slate-700 text-sm leading-relaxed">
+              {/* Beginner-friendly 4-step foundation */}
+              <div className="p-4 bg-white rounded-xl border border-blue-200/90 shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-blue-900 font-bold text-sm">
+                  <Calculator size={18} className="text-blue-600" />
+                  <span>왜 가중치가 움직일까요? 숫자로 따라가는 학습 원리 4단계</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  미분 공식이나 골짜기 비유를 보기 전에, 컴퓨터가 실제로 계산하는 <strong>구체적인 숫자</strong>부터 연결하면 훨씬 이해하기 쉽습니다.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
+                    <strong className="text-blue-800 block font-semibold">1. 데이터와 현재 가중치</strong>
+                    <div className="font-mono text-slate-700">입력 x=2, 목표 y=4, 현재 w={w.toFixed(2)}</div>
+                    <p className="text-[11px] text-slate-500">
+                      모델 <LatexRenderer latex="\hat{y} = wx" />에 <LatexRenderer latex="x=2" />를 넣어 목표 <LatexRenderer latex="y=4" />에 가까워지도록 합니다.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
+                    <strong className="text-amber-800 block font-semibold">2. 예측값, 오차, 그리고 손실</strong>
+                    <div className="font-mono text-slate-700">
+                      예측 ŷ={yHat.toFixed(2)}, 오차={residual >= 0 ? '+' : ''}{residual.toFixed(2)}, 손실 L={loss.toFixed(2)}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      정답 4와 예측 {yHat.toFixed(2)}의 차이를 제곱하여 현재 손실(오차 크기)을 수치화합니다.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
+                    <strong className="text-violet-800 block font-semibold">3. 손실의 기울기 (미분)</strong>
+                    <div className="font-mono text-slate-700">
+                      기울기 8w - 16 = {gradient >= 0 ? '+' : ''}{gradient.toFixed(2)}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {gradient < -1e-4 ? (
+                        <span>기울기가 <strong>음수(-)</strong>이므로 가중치를 <strong>키우면(오른쪽 이동)</strong> 손실이 줄어듭니다.</span>
+                      ) : gradient > 1e-4 ? (
+                        <span>기울기가 <strong>양수(+)</strong>이므로 가중치를 <strong>줄이면(왼쪽 이동)</strong> 손실이 줄어듭니다.</span>
+                      ) : (
+                        <span className="text-emerald-700 font-medium">기울기가 <strong>0.0</strong>이므로 손실이 최소화되어 가중치가 이동하지 않습니다.</span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
+                    <strong className="text-emerald-800 block font-semibold">4. 학습률(η)로 새 가중치 계산</strong>
+                    <div className="font-mono text-slate-700">
+                      w_new = {w.toFixed(2)} - ({lr.toFixed(3)})({gradient.toFixed(2)}) = {nextW.toFixed(2)}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {Math.abs(lr - 0.125) < 1e-4 ? (
+                        <span className="text-emerald-700 font-semibold">η=0.125는 1 - 8η = 0이 되어 단 1스텝 만에 최저점 2.0에 도달합니다!</span>
+                      ) : Math.abs(w - 0.5) < 1e-4 && Math.abs(lr - 0.1) < 1e-4 ? (
+                        <span>기본값(w=0.5, η=0.1)에서는 1스텝 만에 w=1.7로 점프해 손실이 9에서 0.36으로 급감합니다.</span>
+                      ) : (
+                        <span>기울기에 보폭(학습률)을 곱해 최적값(w=2.0)을 향해 전진합니다.</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Intuitive Mountain Metaphor */}
               <div className="flex items-start gap-3 p-4 bg-blue-50/70 rounded-xl border border-blue-100">
                 <Lightbulb size={20} className="text-blue-600 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-bold text-blue-900 text-sm mb-1">
-                    안개 낀 산골짜기에서 발바닥으로 길 찾기
+                    직관적 비유: 안개 낀 산골짜기에서 발바닥으로 길 찾기
                   </h4>
                   <p className="text-xs text-blue-800/90 leading-normal">
+                    위 4단계 계산 과정을 그림으로 상상해 보세요.
                     앞이 전혀 보이지 않는 짙은 안개 속에서 가장 낮은 골짜기(손실이 최소인 곳)로
                     내려가려면 어떻게 해야 할까요?
                     <br />

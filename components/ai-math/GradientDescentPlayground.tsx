@@ -5,6 +5,7 @@ import { LossSpaceView } from './LossSpaceView';
 import { ControllerBar } from './ControllerBar';
 import { ExplanationPanel } from './ExplanationPanel';
 import { PredictStepChallenge } from './PredictStepChallenge';
+import { StepCalculationGuide } from './StepCalculationGuide';
 import {
   stepGradientDescent,
   evaluateConvergence,
@@ -182,6 +183,14 @@ export const GradientDescentPlayground: React.FC = () => {
         onTogglePlay={() => setIsPlaying((prev) => !prev)}
         onReset={handleReset}
         onSelectPreset={handleSelectPreset}
+      />
+
+      {/* Real-time 4-Step Arithmetic Walkthrough Guide */}
+      <StepCalculationGuide
+        w={w}
+        lr={lr}
+        isConverged={isConverged}
+        onStep={handleStep}
       />
 
       {/* Interactive Predict & Step Challenge */}

@@ -25,6 +25,9 @@ export const PredictStepChallenge: React.FC<PredictStepChallengeProps> = ({
     setUserChoice(null);
   }, [w]);
 
+  const yHat = 2.0 * w;
+  const residual = 4.0 - yHat;
+  const loss = residual * residual;
   const gradient = 8 * (w - 2.0);
   const isGradientNegative = gradient < -1e-4;
   const isGradientPositive = gradient > 1e-4;
@@ -103,13 +106,21 @@ export const PredictStepChallenge: React.FC<PredictStepChallengeProps> = ({
             <>
               {/* Question card */}
               <div className="bg-white/90 border border-indigo-100 rounded-xl p-4 space-y-3">
-                <div className="text-xs text-slate-700 leading-relaxed space-y-1.5">
+                <div className="text-xs text-slate-700 leading-relaxed space-y-2">
+                  {/* Step Arithmetic Context */}
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-2.5 font-mono text-xs flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600">
+                    <span>데이터: <LatexRenderer latex="x=2, y=4" /></span>
+                    <span>예측: <LatexRenderer latex={`\\hat{y} = ${yHat.toFixed(1)}`} /></span>
+                    <span>오차: <LatexRenderer latex={`4 - ${yHat.toFixed(1)} = ${residual >= 0 ? '+' : ''}${residual.toFixed(1)}`} /></span>
+                    <span>손실: <LatexRenderer latex={`L = ${loss.toFixed(1)}`} /></span>
+                  </div>
+
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span>현재 가중치</span>
                     <span className="font-mono font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                       w = {w.toFixed(2)}
                     </span>
-                    <span>에서 접선의 기울기는</span>
+                    <span>에서 접선의 기울기(도함수 <LatexRenderer latex="8w - 16" />)는</span>
                     <span
                       className={`font-mono font-bold px-1.5 py-0.5 rounded border inline-flex items-center ${
                         isGradientNegative

@@ -129,4 +129,30 @@ describe('GradientDescentPlayground Component', () => {
     expect(screen.getByText(/현재 설정: w=0.50, η=0.100/i)).toBeInTheDocument();
     expect(screen.getByText(/# 1\. 토이 데이터 및 학습할 파라미터 \(현재 w = 0\.50\)/i)).toBeInTheDocument();
   });
+
+  it('renders the 4-step arithmetic calculation guide and updates live upon execution', () => {
+    render(<GradientDescentPlayground />);
+
+    // Check 4 sequential steps in the guide
+    expect(screen.getByText(/한 걸음\(Step\) 계산 원리: 숫자로 따라가는 4단계/i)).toBeInTheDocument();
+    expect(screen.getByText(/1단계 · 데이터/i)).toBeInTheDocument();
+    expect(screen.getByText(/2단계 · 오차와 손실/i)).toBeInTheDocument();
+    expect(screen.getByText(/3단계 · 미분\(기울기\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/4단계 · 가중치 갱신/i)).toBeInTheDocument();
+
+    // Verify beginner-friendly explanation of negative gradient
+    expect(screen.getAllByText(/키우면\(오른쪽 이동\)/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/손실이 줄어듭니다/i).length).toBeGreaterThan(0);
+
+    // Verify hero step explanation
+    expect(screen.getByText(/기본 상태 핵심 팁:/i)).toBeInTheDocument();
+
+    // Click "계산대로 적용하기" button inside the guide
+    const applyBtn = screen.getByRole('button', { name: /계산대로 적용하기/i });
+    fireEvent.click(applyBtn);
+
+    // After step: w becomes 1.70, step count becomes 1
+    expect(screen.getByText(/누적 스텝:/i)).toHaveTextContent('누적 스텝: 1 회');
+  });
 });
+
